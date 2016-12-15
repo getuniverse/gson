@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+## Version 2.8.0-universe-1
+_2016-12-15_  [GitHub Diff](https://github.com/google/gson/compare/gson-parent-2.8.0...gson-parent-2.8.0-universe-1)
+ * [Fix race for concurrent serialization of recursive type](https://github.com/google/gson/pull/767/commits/ebcdd9e30109497e9bf3030f41c19f968eaa2212).
+
 ## Version 2.8
 _2016-10-26_  [GitHub Diff](https://github.com/google/gson/compare/gson-parent-2.7...gson-parent-2.8.0)
  * New: `TypeToken.getParameterized()` and `TypeToken.getArray()` make it easier to
