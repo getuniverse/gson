@@ -1,36 +1,37 @@
-#Gson User Guide
+# Gson User Guide
 
 1. [Overview](#TOC-Overview)
 2. [Goals for Gson](#TOC-Goals-for-Gson)
 3. [Gson Performance and Scalability](#TOC-Gson-Performance-and-Scalability)
 4. [Gson Users](#TOC-Gson-Users)
 5. [Using Gson](#TOC-Using-Gson)
-  * [Using Gson with Maven](#TOC-Gson-With-Maven)
-  * [Primitives Examples](#TOC-Primitives-Examples)
-  * [Object Examples](#TOC-Object-Examples)
-  * [Finer Points with Objects](#TOC-Finer-Points-with-Objects)
-  * [Nested Classes (including Inner Classes)](#TOC-Nested-Classes-including-Inner-Classes-)
-  * [Array Examples](#TOC-Array-Examples)
-  * [Collections Examples](#TOC-Collections-Examples)
-    * [Collections Limitations](#TOC-Collections-Limitations)
-  * [Serializing and Deserializing Generic Types](#TOC-Serializing-and-Deserializing-Generic-Types)
-  * [Serializing and Deserializing Collection with Objects of Arbitrary Types](#TOC-Serializing-and-Deserializing-Collection-with-Objects-of-Arbitrary-Types)
-  * [Built-in Serializers and Deserializers](#TOC-Built-in-Serializers-and-Deserializers)
-  * [Custom Serialization and Deserialization](#TOC-Custom-Serialization-and-Deserialization)
-    * [Writing a Serializer](#TOC-Writing-a-Serializer)
-    * [Writing a Deserializer](#TOC-Writing-a-Deserializer)
-  * [Writing an Instance Creator](#TOC-Writing-an-Instance-Creator)
-    * [InstanceCreator for a Parameterized Type](#TOC-InstanceCreator-for-a-Parameterized-Type)
-  * [Compact Vs. Pretty Printing for JSON Output Format](#TOC-Compact-Vs.-Pretty-Printing-for-JSON-Output-Format)
-  * [Null Object Support](#TOC-Null-Object-Support)
-  * [Versioning Support](#TOC-Versioning-Support)
-  * [Excluding Fields From Serialization and Deserialization](#TOC-Excluding-Fields-From-Serialization-and-Deserialization)
-    * [Java Modifier Exclusion](#TOC-Java-Modifier-Exclusion)
-    * [Gson's `@Expose`](#TOC-Gson-s-Expose)
-    * [User Defined Exclusion Strategies](#TOC-User-Defined-Exclusion-Strategies)
-  * [JSON Field Naming Support](#TOC-JSON-Field-Naming-Support)
-  * [Sharing State Across Custom Serializers and Deserializers](#TOC-Sharing-State-Across-Custom-Serializers-and-Deserializers)
-  * [Streaming](#TOC-Streaming)
+   * [Using Gson with Gradle/Android](#TOC-Gson-With-Gradle)
+   * [Using Gson with Maven](#TOC-Gson-With-Maven)
+   * [Primitives Examples](#TOC-Primitives-Examples)
+   * [Object Examples](#TOC-Object-Examples)
+   * [Finer Points with Objects](#TOC-Finer-Points-with-Objects)
+   * [Nested Classes (including Inner Classes)](#TOC-Nested-Classes-including-Inner-Classes-)
+   * [Array Examples](#TOC-Array-Examples)
+   * [Collections Examples](#TOC-Collections-Examples)
+     * [Collections Limitations](#TOC-Collections-Limitations)
+   * [Serializing and Deserializing Generic Types](#TOC-Serializing-and-Deserializing-Generic-Types)
+   * [Serializing and Deserializing Collection with Objects of Arbitrary Types](#TOC-Serializing-and-Deserializing-Collection-with-Objects-of-Arbitrary-Types)
+   * [Built-in Serializers and Deserializers](#TOC-Built-in-Serializers-and-Deserializers)
+   * [Custom Serialization and Deserialization](#TOC-Custom-Serialization-and-Deserialization)
+     * [Writing a Serializer](#TOC-Writing-a-Serializer)
+     * [Writing a Deserializer](#TOC-Writing-a-Deserializer)
+   * [Writing an Instance Creator](#TOC-Writing-an-Instance-Creator)
+     * [InstanceCreator for a Parameterized Type](#TOC-InstanceCreator-for-a-Parameterized-Type)
+   * [Compact Vs. Pretty Printing for JSON Output Format](#TOC-Compact-Vs.-Pretty-Printing-for-JSON-Output-Format)
+   * [Null Object Support](#TOC-Null-Object-Support)
+   * [Versioning Support](#TOC-Versioning-Support)
+   * [Excluding Fields From Serialization and Deserialization](#TOC-Excluding-Fields-From-Serialization-and-Deserialization)
+     * [Java Modifier Exclusion](#TOC-Java-Modifier-Exclusion)
+     * [Gson's `@Expose`](#TOC-Gson-s-Expose)
+     * [User Defined Exclusion Strategies](#TOC-User-Defined-Exclusion-Strategies)
+   * [JSON Field Naming Support](#TOC-JSON-Field-Naming-Support)
+   * [Sharing State Across Custom Serializers and Deserializers](#TOC-Sharing-State-Across-Custom-Serializers-and-Deserializers)
+   * [Streaming](#TOC-Streaming)
 6. [Issues in Designing Gson](#TOC-Issues-in-Designing-Gson)
 7. [Future Enhancements to Gson](#TOC-Future-Enhancements-to-Gson)
 
@@ -70,6 +71,12 @@ The primary class to use is [`Gson`](gson/src/main/java/com/google/gson/Gson.jav
 
 The Gson instance does not maintain any state while invoking Json operations. So, you are free to reuse the same object for multiple Json serialization and deserialization operations.
 
+## <a name="TOC-Gson-With-Gradle"></a>Using Gson with Gradle/Android
+```
+dependencies {
+    compile 'com.google.code.gson:gson:2.8.4'
+}
+```
 ## <a name="TOC-Gson-With-Maven"></a>Using Gson with Maven
 To use Gson with Maven2/3, you can use the Gson version available in Maven Central by adding the following dependency:
 
@@ -79,7 +86,7 @@ To use Gson with Maven2/3, you can use the Gson version available in Maven Centr
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
-      <version>2.8.0</version>
+      <version>2.8.4</version>
       <scope>compile</scope>
     </dependency>
 </dependencies>
@@ -137,14 +144,14 @@ BagOfPrimitives obj2 = gson.fromJson(json, BagOfPrimitives.class);
 
 #### <a name="TOC-Finer-Points-with-Objects"></a>**Finer Points with Objects**
 
-* It is perfectly fine (and recommended) to use private fields
+* It is perfectly fine (and recommended) to use private fields.
 * There is no need to use any annotations to indicate a field is to be included for serialization and deserialization. All fields in the current class (and from all super classes) are included by default.
 * If a field is marked transient, (by default) it is ignored and not included in the JSON serialization or deserialization.
-* This implementation handles nulls correctly
-* While serializing, a null field is skipped from the output
-* While deserializing, a missing entry in JSON results in setting the corresponding field in the object to null
-* If a field is _synthetic_, it is ignored and not included in JSON serialization or deserialization
-* Fields corresponding to the outer classes in inner classes, anonymous classes, and local classes are ignored and not included in serialization or deserialization
+* This implementation handles nulls correctly.
+* While serializing, a null field is omitted from the output.
+* While deserializing, a missing entry in JSON results in setting the corresponding field in the object to its default value: null for object types, zero for numeric types, and false for booleans.
+* If a field is _synthetic_, it is ignored and not included in JSON serialization or deserialization.
+* Fields corresponding to the outer classes in inner classes, anonymous classes, and local classes are ignored and not included in serialization or deserialization.
 
 ### <a name="TOC-Nested-Classes-including-Inner-Classes-"></a>Nested Classes (including Inner Classes)
 

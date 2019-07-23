@@ -69,33 +69,20 @@ public final class TypeAdapters {
   public static final TypeAdapter<Class> CLASS = new TypeAdapter<Class>() {
     @Override
     public void write(JsonWriter out, Class value) throws IOException {
-      if (value == null) {
-        out.nullValue();
-      } else {
-        throw new UnsupportedOperationException("Attempted to serialize java.lang.Class: "
-            + value.getName() + ". Forgot to register a type adapter?");
-      }
+      throw new UnsupportedOperationException("Attempted to serialize java.lang.Class: "
+              + value.getName() + ". Forgot to register a type adapter?");
     }
     @Override
     public Class read(JsonReader in) throws IOException {
-      if (in.peek() == JsonToken.NULL) {
-        in.nextNull();
-        return null;
-      } else {
-        throw new UnsupportedOperationException(
-            "Attempted to deserialize a java.lang.Class. Forgot to register a type adapter?");
-      }
+      throw new UnsupportedOperationException(
+              "Attempted to deserialize a java.lang.Class. Forgot to register a type adapter?");
     }
-  };
+  }.nullSafe();
+
   public static final TypeAdapterFactory CLASS_FACTORY = newFactory(Class.class, CLASS);
 
   public static final TypeAdapter<BitSet> BIT_SET = new TypeAdapter<BitSet>() {
     @Override public BitSet read(JsonReader in) throws IOException {
-      if (in.peek() == JsonToken.NULL) {
-        in.nextNull();
-        return null;
-      }
-
       BitSet bitset = new BitSet();
       in.beginArray();
       int i = 0;
@@ -132,29 +119,25 @@ public final class TypeAdapters {
     }
 
     @Override public void write(JsonWriter out, BitSet src) throws IOException {
-      if (src == null) {
-        out.nullValue();
-        return;
-      }
-
       out.beginArray();
-      for (int i = 0; i < src.length(); i++) {
+      for (int i = 0, length = src.length(); i < length; i++) {
         int value = (src.get(i)) ? 1 : 0;
         out.value(value);
       }
       out.endArray();
     }
-  };
+  }.nullSafe();
 
   public static final TypeAdapterFactory BIT_SET_FACTORY = newFactory(BitSet.class, BIT_SET);
 
   public static final TypeAdapter<Boolean> BOOLEAN = new TypeAdapter<Boolean>() {
     @Override
     public Boolean read(JsonReader in) throws IOException {
-      if (in.peek() == JsonToken.NULL) {
+      JsonToken peek = in.peek();
+      if (peek == JsonToken.NULL) {
         in.nextNull();
         return null;
-      } else if (in.peek() == JsonToken.STRING) {
+      } else if (peek == JsonToken.STRING) {
         // support strings for compatibility with GSON 1.7
         return Boolean.parseBoolean(in.nextString());
       }

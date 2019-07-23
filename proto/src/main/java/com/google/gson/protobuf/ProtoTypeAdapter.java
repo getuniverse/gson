@@ -19,7 +19,6 @@ package com.google.gson.protobuf;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.CaseFormat;
-import com.google.common.base.Converter;
 import com.google.common.collect.MapMaker;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
@@ -35,8 +34,8 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.EnumDescriptor;
 import com.google.protobuf.Descriptors.EnumValueDescriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
+import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.Extension;
-import com.google.protobuf.GeneratedMessage;
 import com.google.protobuf.Message;
 
 import java.lang.reflect.Field;
@@ -73,7 +72,7 @@ import java.util.concurrent.ConcurrentMap;
  * @author Stanley Wang
  */
 public class ProtoTypeAdapter
-    implements JsonSerializer<GeneratedMessage>, JsonDeserializer<GeneratedMessage> {
+    implements JsonSerializer<Message>, JsonDeserializer<Message> {
   /**
    * Determines how enum <u>values</u> should be serialized.
    */
@@ -94,7 +93,8 @@ public class ProtoTypeAdapter
     private final Set<Extension<FieldOptions, String>> serializedNameExtensions;
     private final Set<Extension<EnumValueOptions, String>> serializedEnumValueExtensions;
     private EnumSerialization enumSerialization;
-    private Converter<String, String> fieldNameSerializationFormat;
+    private CaseFormat protoFormat;
+    private CaseFormat jsonFormat;
 
     private Builder(EnumSerialization enumSerialization, CaseFormat fromFieldNameFormat,
         CaseFormat toFieldNameFormat) {
@@ -126,7 +126,8 @@ public class ProtoTypeAdapter
      */
     public Builder setFieldNameSerializationFormat(CaseFormat fromFieldNameFormat,
         CaseFormat toFieldNameFormat) {
-      fieldNameSerializationFormat = fromFieldNameFormat.converterTo(toFieldNameFormat);
+      this.protoFormat = fromFieldNameFormat;
+      this.jsonFormat = toFieldNameFormat;
       return this;
     }
 
@@ -174,7 +175,7 @@ public class ProtoTypeAdapter
     }
 
     public ProtoTypeAdapter build() {
-      return new ProtoTypeAdapter(enumSerialization, fieldNameSerializationFormat,
+      return new ProtoTypeAdapter(enumSerialization, protoFormat, jsonFormat,
           serializedNameExtensions, serializedEnumValueExtensions);
     }
   }
@@ -195,22 +196,25 @@ public class ProtoTypeAdapter
       new MapMaker().makeMap();
 
   private final EnumSerialization enumSerialization;
-  private final Converter<String, String> fieldNameSerializationFormat;
+  private final CaseFormat protoFormat;
+  private final CaseFormat jsonFormat;
   private final Set<Extension<FieldOptions, String>> serializedNameExtensions;
   private final Set<Extension<EnumValueOptions, String>> serializedEnumValueExtensions;
 
   private ProtoTypeAdapter(EnumSerialization enumSerialization,
-      Converter<String, String> fieldNameSerializationFormat,
+      CaseFormat protoFormat,
+      CaseFormat jsonFormat,
       Set<Extension<FieldOptions, String>> serializedNameExtensions,
       Set<Extension<EnumValueOptions, String>> serializedEnumValueExtensions) {
     this.enumSerialization = enumSerialization;
-    this.fieldNameSerializationFormat = fieldNameSerializationFormat;
+    this.protoFormat = protoFormat;
+    this.jsonFormat = jsonFormat;
     this.serializedNameExtensions = serializedNameExtensions;
     this.serializedEnumValueExtensions = serializedEnumValueExtensions;
   }
 
   @Override
-  public JsonElement serialize(GeneratedMessage src, Type typeOfSrc,
+  public JsonElement serialize(Message src, Type typeOfSrc,
       JsonSerializationContext context) {
     JsonObject ret = new JsonObject();
     final Map<FieldDescriptor, Object> fields = src.getAllFields();
@@ -243,17 +247,24 @@ public class ProtoTypeAdapter
   }
 
   @Override
-  public GeneratedMessage deserialize(JsonElement json, Type typeOfT,
+  public Message deserialize(JsonElement json, Type typeOfT,
       JsonDeserializationContext context) throws JsonParseException {
     try {
       JsonObject jsonObject = json.getAsJsonObject();
       @SuppressWarnings("unchecked")
-      Class<? extends GeneratedMessage> protoClass = (Class<? extends GeneratedMessage>) typeOfT;
+      Class<? extends Message> protoClass = (Class<? extends Message>) typeOfT;
+
+      if (DynamicMessage.class.isAssignableFrom(protoClass)) {
+        throw new IllegalStateException("only generated messages are supported");
+      }
 
       try {
         // Invoke the ProtoClass.newBuilder() method
-        GeneratedMessage.Builder<?> protoBuilder =
-            (GeneratedMessage.Builder<?>) getCachedMethod(protoClass, "newBuilder").invoke(null);
+        Message.Builder protoBuilder =
+            (Message.Builder) getCachedMethod(protoClass, "newBuilder").invoke(null);
+
+        Message defaultInstance =
+            (Message) getCachedMethod(protoClass, "getDefaultInstance").invoke(null);
 
         Descriptor protoDescriptor =
             (Descriptor) getCachedMethod(protoClass, "getDescriptor").invoke(null);
@@ -270,7 +281,7 @@ public class ProtoTypeAdapter
               if (jsonElement.isJsonArray()) {
                 // Handling array
                 Collection<EnumValueDescriptor> enumCollection =
-                    new ArrayList<EnumValueDescriptor>();
+                    new ArrayList<EnumValueDescriptor>(jsonElement.getAsJsonArray().size());
                 for (JsonElement element : jsonElement.getAsJsonArray()) {
                   enumCollection.add(
                       findValueByNameAndExtension(fieldDescriptor.getEnumType(), element));
@@ -284,21 +295,21 @@ public class ProtoTypeAdapter
               protoBuilder.setField(fieldDescriptor, fieldValue);
             } else if (fieldDescriptor.isRepeated()) {
               // If the type is an array, then we have to grab the type from the class.
+              // protobuf java field names are always lower camel case
               String protoArrayFieldName =
-                  fieldNameSerializationFormat.convert(fieldDescriptor.getName()) + "_";
+                  protoFormat.to(CaseFormat.LOWER_CAMEL, fieldDescriptor.getName()) + "_";
               Field protoArrayField = protoClass.getDeclaredField(protoArrayFieldName);
               Type protoArrayFieldType = protoArrayField.getGenericType();
               fieldValue = context.deserialize(jsonElement, protoArrayFieldType);
               protoBuilder.setField(fieldDescriptor, fieldValue);
             } else {
-              Message prototype = protoBuilder.build();
-              Object field = prototype.getField(fieldDescriptor);
+              Object field = defaultInstance.getField(fieldDescriptor);
               fieldValue = context.deserialize(jsonElement, field.getClass());
               protoBuilder.setField(fieldDescriptor, fieldValue);
             }
           }
         }
-        return (GeneratedMessage) protoBuilder.build();
+        return (Message) protoBuilder.build();
       } catch (SecurityException e) {
         throw new JsonParseException(e);
       } catch (NoSuchMethodException e) {
@@ -325,7 +336,7 @@ public class ProtoTypeAdapter
         return options.getExtension(extension);
       }
     }
-    return fieldNameSerializationFormat.convert(defaultName);
+    return protoFormat.to(jsonFormat, defaultName);
   }
 
   /**

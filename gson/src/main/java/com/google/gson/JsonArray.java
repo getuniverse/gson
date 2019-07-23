@@ -39,14 +39,25 @@ public final class JsonArray extends JsonElement implements Iterable<JsonElement
   public JsonArray() {
     elements = new ArrayList<JsonElement>();
   }
+  
+  public JsonArray(int capacity) {
+    elements = new ArrayList<JsonElement>(capacity);
+  }
 
+  /**
+   * Creates a deep copy of this element and all its children
+   * @since 2.8.2
+   */
   @Override
-  JsonArray deepCopy() {
-    JsonArray result = new JsonArray();
-    for (JsonElement element : elements) {
-      result.add(element.deepCopy());
+  public JsonArray deepCopy() {
+    if (!elements.isEmpty()) {
+      JsonArray result = new JsonArray(elements.size());
+      for (JsonElement element : elements) {
+        result.add(element.deepCopy());
+      }
+      return result;
     }
-    return result;
+    return new JsonArray();
   }
 
   /**

@@ -27,6 +27,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.TypeAdapter;
+import com.google.gson.internal.JavaVersion;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
@@ -55,6 +56,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.TreeSet;
 import java.util.UUID;
+
 import junit.framework.TestCase;
 
 /**
@@ -328,7 +330,11 @@ public class DefaultTypeAdaptersTest extends TestCase {
   public void testDefaultDateSerialization() {
     Date now = new Date(1315806903103L);
     String json = gson.toJson(now);
-    assertEquals("\"Sep 11, 2011 10:55:03 PM\"", json);
+    if (JavaVersion.isJava9OrLater()) {
+      assertEquals("\"Sep 11, 2011, 10:55:03 PM\"", json);
+    } else {
+      assertEquals("\"Sep 11, 2011 10:55:03 PM\"", json);
+    }
   }
 
   public void testDefaultDateDeserialization() {
@@ -369,7 +375,11 @@ public class DefaultTypeAdaptersTest extends TestCase {
   public void testDefaultJavaSqlTimestampSerialization() {
     Timestamp now = new java.sql.Timestamp(1259875082000L);
     String json = gson.toJson(now);
-    assertEquals("\"Dec 3, 2009 1:18:02 PM\"", json);
+    if (JavaVersion.isJava9OrLater()) {
+      assertEquals("\"Dec 3, 2009, 1:18:02 PM\"", json);
+    } else {
+      assertEquals("\"Dec 3, 2009 1:18:02 PM\"", json);
+    }
   }
 
   public void testDefaultJavaSqlTimestampDeserialization() {
@@ -395,7 +405,11 @@ public class DefaultTypeAdaptersTest extends TestCase {
     Gson gson = new GsonBuilder().create();
     Date now = new Date(1315806903103L);
     String json = gson.toJson(now);
-    assertEquals("\"Sep 11, 2011 10:55:03 PM\"", json);
+    if (JavaVersion.isJava9OrLater()) {
+      assertEquals("\"Sep 11, 2011, 10:55:03 PM\"", json);
+    } else {
+      assertEquals("\"Sep 11, 2011 10:55:03 PM\"", json);
+    }
   }
 
   public void testDefaultDateDeserializationUsingBuilder() throws Exception {
