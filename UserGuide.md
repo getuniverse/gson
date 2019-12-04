@@ -74,7 +74,7 @@ The Gson instance does not maintain any state while invoking Json operations. So
 ## <a name="TOC-Gson-With-Gradle"></a>Using Gson with Gradle/Android
 ```
 dependencies {
-    compile 'com.google.code.gson:gson:2.8.4'
+    implementation 'com.google.code.gson:gson:2.8.6'
 }
 ```
 ## <a name="TOC-Gson-With-Maven"></a>Using Gson with Maven
@@ -86,7 +86,7 @@ To use Gson with Maven2/3, you can use the Gson version available in Maven Centr
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
-      <version>2.8.4</version>
+      <version>2.8.6</version>
       <scope>compile</scope>
     </dependency>
 </dependencies>
@@ -148,8 +148,8 @@ BagOfPrimitives obj2 = gson.fromJson(json, BagOfPrimitives.class);
 * There is no need to use any annotations to indicate a field is to be included for serialization and deserialization. All fields in the current class (and from all super classes) are included by default.
 * If a field is marked transient, (by default) it is ignored and not included in the JSON serialization or deserialization.
 * This implementation handles nulls correctly.
-* While serializing, a null field is omitted from the output.
-* While deserializing, a missing entry in JSON results in setting the corresponding field in the object to its default value: null for object types, zero for numeric types, and false for booleans.
+  * While serializing, a null field is omitted from the output.
+  * While deserializing, a missing entry in JSON results in setting the corresponding field in the object to its default value: null for object types, zero for numeric types, and false for booleans.
 * If a field is _synthetic_, it is ignored and not included in JSON serialization or deserialization.
 * Fields corresponding to the outer classes in inner classes, anonymous classes, and local classes are ignored and not included in serialization or deserialization.
 
@@ -248,9 +248,9 @@ gson.toJson(foo); // May not serialize foo.value correctly
 gson.fromJson(json, foo.getClass()); // Fails to deserialize foo.value as Bar
 ```
 
-The above code fails to interpret value as type Bar because Gson invokes `list.getClass()` to get its class information, but this method returns a raw class, `Foo.class`. This means that Gson has no way of knowing that this is an object of type `Foo<Bar>`, and not just plain `Foo`.
+The above code fails to interpret value as type Bar because Gson invokes `foo.getClass()` to get its class information, but this method returns a raw class, `Foo.class`. This means that Gson has no way of knowing that this is an object of type `Foo<Bar>`, and not just plain `Foo`.
 
-You can solve this problem by specifying the correct parameterized type for your generic type. You can do this by using the [`TypeToken`](http://google.github.io/gson/apidocs/com/google/gson/reflect/TypeToken.html) class.
+You can solve this problem by specifying the correct parameterized type for your generic type. You can do this by using the [`TypeToken`](https://static.javadoc.io/com.google.code.gson/gson/2.8.5/com/google/gson/reflect/TypeToken.html) class.
 
 ```java
 Type fooType = new TypeToken<Foo<Bar>>() {}.getType();
@@ -510,12 +510,12 @@ public class VersionedClass {
 
 VersionedClass versionedObject = new VersionedClass();
 Gson gson = new GsonBuilder().setVersion(1.0).create();
-String jsonOutput = gson.toJson(someObject);
+String jsonOutput = gson.toJson(versionedObject);
 System.out.println(jsonOutput);
 System.out.println();
 
 gson = new Gson();
-jsonOutput = gson.toJson(someObject);
+jsonOutput = gson.toJson(versionedObject);
 System.out.println(jsonOutput);
 ```
 
@@ -556,7 +556,7 @@ This feature provides a way where you can mark certain fields of your objects to
 
 #### <a name="TOC-User-Defined-Exclusion-Strategies"></a>User Defined Exclusion Strategies
 
-If the above mechanisms for excluding fields and class type do not work for you then you can always write your own exclusion strategy and plug it into Gson. See the [`ExclusionStrategy`](http://google.github.io/gson/apidocs/com/google/gson/ExclusionStrategy.html) JavaDoc for more information.
+If the above mechanisms for excluding fields and class type do not work for you then you can always write your own exclusion strategy and plug it into Gson. See the [`ExclusionStrategy`](https://static.javadoc.io/com.google.code.gson/gson/2.8.5/com/google/gson/ExclusionStrategy.html) JavaDoc for more information.
 
 The following example shows how to exclude fields marked with a specific `@Foo` annotation and excludes top-level types (or declared field type) of class `String`.
 
@@ -615,7 +615,7 @@ The output is:
 
 ### <a name="TOC-JSON-Field-Naming-Support"></a>JSON Field Naming Support
 
-Gson supports some pre-defined field naming policies to convert the standard Java field names (i.e., camel cased names starting with lower case --- `sampleFieldNameInJava`) to a Json field name (i.e., `sample_field_name_in_java` or `SampleFieldNameInJava`). See the [FieldNamingPolicy](http://google.github.io/gson/apidocs/com/google/gson/FieldNamingPolicy.html) class for information on the pre-defined naming policies.
+Gson supports some pre-defined field naming policies to convert the standard Java field names (i.e., camel cased names starting with lower case --- `sampleFieldNameInJava`) to a Json field name (i.e., `sample_field_name_in_java` or `SampleFieldNameInJava`). See the [FieldNamingPolicy](https://static.javadoc.io/com.google.code.gson/gson/2.8.5/com/google/gson/FieldNamingPolicy.html) class for information on the pre-defined naming policies.
 
 It also has an annotation based strategy to allows clients to define custom names on a per field basis. Note, that the annotation based strategy has field name validation which will raise "Runtime" exceptions if an invalid field name is provided as the annotation value.
 
@@ -644,11 +644,11 @@ The output is:
 {"custom_naming":"first","SomeOtherField":"second"}
 ```
 
-If you have a need for custom naming policy ([see this discussion](http://groups.google.com/group/google-gson/browse_thread/thread/cb441a2d717f6892)), you can use the [@SerializedName](http://google.github.io/gson/apidocs/com/google/gson/annotations/SerializedName.html) annotation.
+If you have a need for custom naming policy ([see this discussion](https://groups.google.com/group/google-gson/browse_thread/thread/cb441a2d717f6892)), you can use the [@SerializedName](https://static.javadoc.io/com.google.code.gson/gson/2.8.5/com/google/gson/annotations/SerializedName.html) annotation.
 
 ### <a name="TOC-Sharing-State-Across-Custom-Serializers-and-Deserializers"></a>Sharing State Across Custom Serializers and Deserializers
 
-Sometimes you need to share state across custom serializers/deserializers ([see this discussion](http://groups.google.com/group/google-gson/browse_thread/thread/2850010691ea09fb)). You can use the following three strategies to accomplish this:
+Sometimes you need to share state across custom serializers/deserializers ([see this discussion](https://groups.google.com/group/google-gson/browse_thread/thread/2850010691ea09fb)). You can use the following three strategies to accomplish this:
 
 1. Store shared state in static fields
 2. Declare the serializer/deserializer as inner classes of a parent type, and use the instance fields of parent type to store shared state

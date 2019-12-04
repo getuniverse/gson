@@ -34,10 +34,11 @@ import java.lang.ref.WeakReference;
  */
 public class RecursiveTypesResolveTest extends TestCase {
 
+  @SuppressWarnings("unused")
   private static class Foo1<A> {
-    public Foo2<? extends A> foo2;
+	public Foo2<? extends A> foo2;
   }
-
+  @SuppressWarnings("unused")
   private static class Foo2<B> {
     public Foo1<? super B> foo1;
   }
@@ -45,14 +46,16 @@ public class RecursiveTypesResolveTest extends TestCase {
   /**
    * Test simplest case of recursion.
    */
+
   public void testRecursiveResolveSimple() {
     TypeAdapter<Foo1> adapter = new Gson().getAdapter(Foo1.class);
     assertNotNull(adapter);
   }
 
-  //
-  // Real-world samples, found in Issues #603 and #440.
-  //
+  /**
+   * Real-world samples, found in Issues #603 and #440.
+   */
+
   public void testIssue603PrintStream() {
     TypeAdapter<PrintStream> adapter = new Gson().getAdapter(PrintStream.class);
     assertNotNull(adapter);
@@ -63,9 +66,9 @@ public class RecursiveTypesResolveTest extends TestCase {
     assertNotNull(adapter);
   }
 
-  //
-  // Tests belows check the behaviour of the methods changed for the fix
-  //
+  /**
+   * Tests belows check the behaviour of the methods changed for the fix.
+   */
 
   public void testDoubleSupertype() {
     assertEquals($Gson$Types.supertypeOf(Number.class),
@@ -87,14 +90,16 @@ public class RecursiveTypesResolveTest extends TestCase {
             $Gson$Types.subtypeOf($Gson$Types.supertypeOf(Number.class)));
   }
 
-  //
-  // tests for recursion while resolving type variables
-  //
+  /**
+   * Tests for recursion while resolving type variables.
+   */
 
+  @SuppressWarnings("unused")
   private static class TestType<X> {
     TestType<? super X> superType;
   }
 
+  @SuppressWarnings("unused")
   private static class TestType2<X, Y> {
     TestType2<? super Y, ? super X> superReversedType;
   }
@@ -109,6 +114,3 @@ public class RecursiveTypesResolveTest extends TestCase {
     assertNotNull(adapter);
   }
 }
-
-
-

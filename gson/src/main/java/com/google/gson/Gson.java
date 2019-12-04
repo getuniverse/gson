@@ -80,7 +80,7 @@ import com.google.gson.stream.MalformedJsonException;
  *
  * <p>If the object that your are serializing/deserializing is a {@code ParameterizedType}
  * (i.e. contains at least one type parameter and may be an array) then you must use the
- * {@link #toJson(Object, Type)} or {@link #fromJson(String, Type)} method.  Here is an
+ * {@link #toJson(Object, Type)} or {@link #fromJson(String, Type)} method. Here is an
  * example for serializing and deserializing a {@code ParameterizedType}:
  *
  * <pre>
@@ -192,8 +192,8 @@ public final class Gson {
         Collections.<TypeAdapterFactory>emptyList());
   }
 
-  Gson(final Excluder excluder, final FieldNamingStrategy fieldNamingStrategy,
-      final Map<Type, InstanceCreator<?>> instanceCreators, boolean serializeNulls,
+  Gson(Excluder excluder, FieldNamingStrategy fieldNamingStrategy,
+      Map<Type, InstanceCreator<?>> instanceCreators, boolean serializeNulls,
       boolean complexMapKeySerialization, boolean generateNonExecutableGson, boolean htmlSafe,
       boolean prettyPrinting, boolean lenient, boolean serializeSpecialFloatingPointValues,
       LongSerializationPolicy longSerializationPolicy, String datePattern, int dateStyle,
@@ -709,7 +709,9 @@ public final class Gson {
     } catch (IOException e) {
       throw new JsonIOException(e);
     } catch (AssertionError e) {
-      throw new AssertionError("AssertionError (GSON " + GsonBuildConfig.VERSION + "): " + e.getMessage(), e);
+      AssertionError error = new AssertionError("AssertionError (GSON " + GsonBuildConfig.VERSION + "): " + e.getMessage());
+      error.initCause(e);
+      throw error;
     } finally {
       writer.setLenient(oldLenient);
       writer.setHtmlSafe(oldHtmlSafe);
@@ -787,7 +789,9 @@ public final class Gson {
     } catch (IOException e) {
       throw new JsonIOException(e);
     } catch (AssertionError e) {
-      throw new AssertionError("AssertionError (GSON " + GsonBuildConfig.VERSION + "): " + e.getMessage(), e);
+      AssertionError error = new AssertionError("AssertionError (GSON " + GsonBuildConfig.VERSION + "): " + e.getMessage());
+      error.initCause(e);
+      throw error;
     } finally {
       writer.setLenient(oldLenient);
       writer.setHtmlSafe(oldHtmlSafe);
@@ -832,7 +836,8 @@ public final class Gson {
    * <pre>
    * Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
    * </pre>
-   * @return an object of type T from the string. Returns {@code null} if {@code json} is {@code null}.
+   * @return an object of type T from the string. Returns {@code null} if {@code json} is {@code null}
+   * or if {@code json} is empty.
    * @throws JsonParseException if json is not a valid representation for an object of type typeOfT
    * @throws JsonSyntaxException if json is not a valid representation for an object of type
    */
@@ -945,7 +950,9 @@ public final class Gson {
       // TODO(inder): Figure out whether it is indeed right to rethrow this as JsonSyntaxException
       throw new JsonSyntaxException(e);
     } catch (AssertionError e) {
-      throw new AssertionError("AssertionError (GSON " + GsonBuildConfig.VERSION + "): " + e.getMessage(), e);
+      AssertionError error = new AssertionError("AssertionError (GSON " + GsonBuildConfig.VERSION + "): " + e.getMessage());
+      error.initCause(e);
+      throw error;
     } finally {
       reader.setLenient(oldLenient);
     }
@@ -963,7 +970,8 @@ public final class Gson {
    * @param json the root of the parse tree of {@link JsonElement}s from which the object is to
    * be deserialized
    * @param classOfT The class of T
-   * @return an object of type T from the json. Returns {@code null} if {@code json} is {@code null}.
+   * @return an object of type T from the json. Returns {@code null} if {@code json} is {@code null}
+   * or if {@code json} is empty.
    * @throws JsonSyntaxException if json is not a valid representation for an object of type typeOfT
    * @since 1.3
    */
@@ -986,7 +994,8 @@ public final class Gson {
    * <pre>
    * Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
    * </pre>
-   * @return an object of type T from the json. Returns {@code null} if {@code json} is {@code null}.
+   * @return an object of type T from the json. Returns {@code null} if {@code json} is {@code null}
+   * or if {@code json} is empty.
    * @throws JsonSyntaxException if json is not a valid representation for an object of type typeOfT
    * @since 1.3
    */
