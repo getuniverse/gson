@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+## Version 2.8.6-universe-1
+_2019-12-07_  [GitHub Diff](https://github.com/google/gson/compare/gson-parent-2.8.6...gson-parent-2.8.6-universe-1)
+ * [Fix race for concurrent serialization of recursive type](https://github.com/google/gson/pull/767/commits/ebcdd9e30109497e9bf3030f41c19f968eaa2212).
+
 ## Version 2.8.6
 _2019-10-04_  [GitHub Diff](https://github.com/google/gson/compare/gson-parent-2.8.5...gson-parent-2.8.6)
  * Added static methods `JsonParser.parseString` and `JsonParser.parseReader` and deprecated instance method `JsonParser.parse`
