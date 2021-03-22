@@ -21,6 +21,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.google.gson.internal.InvalidStateException;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import java.io.IOException;
@@ -38,10 +39,10 @@ import java.util.Arrays;
 public final class JsonTreeReader extends JsonReader {
   private static final Reader UNREADABLE_READER = new Reader() {
     @Override public int read(char[] buffer, int offset, int count) throws IOException {
-      throw new AssertionError();
+      throw new InvalidStateException();
     }
     @Override public void close() throws IOException {
-      throw new AssertionError();
+      throw new InvalidStateException();
     }
   };
   private static final Object SENTINEL_CLOSED = new Object();
@@ -136,14 +137,14 @@ public final class JsonTreeReader extends JsonReader {
       } else if (primitive.isNumber()) {
         return JsonToken.NUMBER;
       } else {
-        throw new AssertionError();
+        throw new InvalidStateException();
       }
     } else if (o instanceof JsonNull) {
       return JsonToken.NULL;
     } else if (o == SENTINEL_CLOSED) {
       throw new IllegalStateException("JsonReader is closed");
     } else {
-      throw new AssertionError();
+      throw new InvalidStateException();
     }
   }
 

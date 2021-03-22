@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 
+import com.google.gson.internal.InvalidStateException;
 import com.google.gson.internal.ConstructorConstructor;
 import com.google.gson.internal.Excluder;
 import com.google.gson.internal.GsonBuildConfig;
@@ -708,10 +709,8 @@ public final class Gson {
       ((TypeAdapter<Object>) adapter).write(writer, src);
     } catch (IOException e) {
       throw new JsonIOException(e);
-    } catch (AssertionError e) {
-      AssertionError error = new AssertionError("AssertionError (GSON " + GsonBuildConfig.VERSION + "): " + e.getMessage());
-      error.initCause(e);
-      throw error;
+    } catch (InvalidStateException e) {
+      throw new InvalidStateException("AssertionError (GSON " + GsonBuildConfig.VERSION + "): " + e.getMessage(), e);
     } finally {
       writer.setLenient(oldLenient);
       writer.setHtmlSafe(oldHtmlSafe);
@@ -788,10 +787,8 @@ public final class Gson {
       Streams.write(jsonElement, writer);
     } catch (IOException e) {
       throw new JsonIOException(e);
-    } catch (AssertionError e) {
-      AssertionError error = new AssertionError("AssertionError (GSON " + GsonBuildConfig.VERSION + "): " + e.getMessage());
-      error.initCause(e);
-      throw error;
+    } catch (InvalidStateException e) {
+      throw new InvalidStateException("AssertionError (GSON " + GsonBuildConfig.VERSION + "): " + e.getMessage(), e);
     } finally {
       writer.setLenient(oldLenient);
       writer.setHtmlSafe(oldHtmlSafe);
@@ -949,10 +946,8 @@ public final class Gson {
     } catch (IOException e) {
       // TODO(inder): Figure out whether it is indeed right to rethrow this as JsonSyntaxException
       throw new JsonSyntaxException(e);
-    } catch (AssertionError e) {
-      AssertionError error = new AssertionError("AssertionError (GSON " + GsonBuildConfig.VERSION + "): " + e.getMessage());
-      error.initCause(e);
-      throw error;
+    } catch (InvalidStateException e) {
+      throw new InvalidStateException("AssertionError (GSON " + GsonBuildConfig.VERSION + "): " + e.getMessage(), e);
     } finally {
       reader.setLenient(oldLenient);
     }
@@ -1012,7 +1007,7 @@ public final class Gson {
 
     public void setDelegate(TypeAdapter<T> typeAdapter) {
       if (delegate != null) {
-        throw new AssertionError();
+        throw new InvalidStateException();
       }
       delegate = typeAdapter;
     }

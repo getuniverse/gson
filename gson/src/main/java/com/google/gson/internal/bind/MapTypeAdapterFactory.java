@@ -23,6 +23,7 @@ import com.google.gson.JsonSyntaxException;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.internal.$Gson$Types;
+import com.google.gson.internal.InvalidStateException;
 import com.google.gson.internal.ConstructorConstructor;
 import com.google.gson.internal.JsonReaderInternalAccess;
 import com.google.gson.internal.ObjectConstructor;
@@ -252,12 +253,12 @@ public final class MapTypeAdapterFactory implements TypeAdapterFactory {
         } else if (primitive.isString()) {
           return primitive.getAsString();
         } else {
-          throw new AssertionError();
+          throw new InvalidStateException();
         }
       } else if (keyElement.isJsonNull()) {
         return "null";
       } else {
-        throw new AssertionError();
+        throw new InvalidStateException();
       }
     }
   }

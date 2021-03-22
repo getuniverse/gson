@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import com.google.gson.internal.InvalidStateException;
 import com.google.gson.internal.JavaVersion;
 import com.google.gson.internal.PreJava9DateFormatProvider;
 import com.google.gson.internal.bind.util.ISO8601Utils;
@@ -134,7 +135,7 @@ final class DefaultDateTypeAdapter extends TypeAdapter<Date> {
       return new java.sql.Date(date.getTime());
     } else {
       // This must never happen: dateType is guarded in the primary constructor
-      throw new AssertionError();
+      throw new InvalidStateException();
     }
   }
 

@@ -21,6 +21,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.google.gson.internal.InvalidStateException;
 import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 import java.io.Writer;
@@ -33,13 +34,13 @@ import java.util.List;
 public final class JsonTreeWriter extends JsonWriter {
   private static final Writer UNWRITABLE_WRITER = new Writer() {
     @Override public void write(char[] buffer, int offset, int counter) {
-      throw new AssertionError();
+      throw new InvalidStateException();
     }
     @Override public void flush() throws IOException {
-      throw new AssertionError();
+      throw new InvalidStateException();
     }
     @Override public void close() throws IOException {
-      throw new AssertionError();
+      throw new InvalidStateException();
     }
   };
   /** Added to the top of the stack when this writer is closed to cause following ops to fail. */

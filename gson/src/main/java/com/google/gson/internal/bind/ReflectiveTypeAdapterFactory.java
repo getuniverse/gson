@@ -24,6 +24,7 @@ import com.google.gson.TypeAdapterFactory;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.internal.$Gson$Types;
+import com.google.gson.internal.InvalidStateException;
 import com.google.gson.internal.ConstructorConstructor;
 import com.google.gson.internal.Excluder;
 import com.google.gson.internal.ObjectConstructor;
@@ -225,7 +226,7 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
       } catch (IllegalStateException e) {
         throw new JsonSyntaxException(e);
       } catch (IllegalAccessException e) {
-        throw new AssertionError(e);
+        throw new InvalidStateException(e);
       }
       in.endObject();
       return instance;
@@ -246,7 +247,7 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
           }
         }
       } catch (IllegalAccessException e) {
-        throw new AssertionError(e);
+        throw new InvalidStateException(e);
       }
       out.endObject();
     }

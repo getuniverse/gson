@@ -24,6 +24,7 @@ import org.junit.Test;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
+import com.google.gson.internal.InvalidStateException;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
@@ -43,10 +44,10 @@ public class GsonVersionDiagnosticsTest extends TestCase {
   public void setUp() {
     gson = new GsonBuilder().registerTypeAdapter(TestType.class, new TypeAdapter<TestType>() {
       @Override public void write(JsonWriter out, TestType value) {
-        throw new AssertionError("Expected during serialization");
+        throw new InvalidStateException("Expected during serialization");
       }
       @Override public TestType read(JsonReader in) throws IOException {
-        throw new AssertionError("Expected during deserialization");
+        throw new InvalidStateException("Expected during deserialization");
       }
     }).create();
   }
@@ -63,7 +64,7 @@ public class GsonVersionDiagnosticsTest extends TestCase {
     try {
       gson.toJson(new TestType());
       fail();
-    } catch (AssertionError expected) {
+    } catch (InvalidStateException expected) {
       ensureAssertionErrorPrintsGsonVersion(expected);
     }
   }
@@ -73,12 +74,12 @@ public class GsonVersionDiagnosticsTest extends TestCase {
     try {
       gson.fromJson("{'a':'abc'}", TestType.class);
       fail();
-    } catch (AssertionError expected) {
+    } catch (InvalidStateException expected) {
       ensureAssertionErrorPrintsGsonVersion(expected);
     }
   }
 
-  private void ensureAssertionErrorPrintsGsonVersion(AssertionError expected) {
+  private void ensureAssertionErrorPrintsGsonVersion(InvalidStateException expected) {
     String msg = expected.getMessage();
     // System.err.println(msg);
     int start = msg.indexOf("(GSON");

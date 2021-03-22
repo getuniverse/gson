@@ -51,6 +51,7 @@ import com.google.gson.JsonSyntaxException;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.annotations.SerializedName;
+import com.google.gson.internal.InvalidStateException;
 import com.google.gson.internal.LazilyParsedNumber;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
@@ -789,7 +790,7 @@ public final class TypeAdapters {
           constantToName.put(constant, name);
         }
       } catch (NoSuchFieldException e) {
-        throw new AssertionError(e);
+        throw new InvalidStateException(e);
       }
     }
     @Override public T read(JsonReader in) throws IOException {

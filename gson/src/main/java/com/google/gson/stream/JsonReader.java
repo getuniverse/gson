@@ -16,6 +16,7 @@
 
 package com.google.gson.stream;
 
+import com.google.gson.internal.InvalidStateException;
 import com.google.gson.internal.JsonReaderInternalAccess;
 import com.google.gson.internal.bind.JsonTreeReader;
 import java.io.Closeable;
@@ -453,7 +454,7 @@ public class JsonReader implements Closeable {
     case PEEKED_EOF:
       return JsonToken.END_DOCUMENT;
     default:
-      throw new AssertionError();
+      throw new InvalidStateException();
     }
   }
 

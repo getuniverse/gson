@@ -117,7 +117,7 @@ public final class ConstructorConstructor {
             throw new RuntimeException("Failed to invoke " + constructor + " with no args",
                 e.getTargetException());
           } catch (IllegalAccessException e) {
-            throw new AssertionError(e);
+            throw new InvalidStateException(e);
           }
         }
       };

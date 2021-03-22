@@ -18,6 +18,7 @@ package com.google.gson.reflect;
 
 import com.google.gson.internal.$Gson$Types;
 import com.google.gson.internal.$Gson$Preconditions;
+import com.google.gson.internal.InvalidStateException;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -250,7 +251,7 @@ public class TypeToken<T> {
     return false;
   }
 
-  private static AssertionError buildUnexpectedTypeError(
+  private static InvalidStateException buildUnexpectedTypeError(
       Type token, Class<?>... expected) {
 
     // Build exception message
@@ -262,7 +263,7 @@ public class TypeToken<T> {
     exceptionMessage.append("but got: ").append(token.getClass().getName())
         .append(", for type token: ").append(token.toString()).append('.');
 
-    return new AssertionError(exceptionMessage.toString());
+    return new InvalidStateException(exceptionMessage.toString());
   }
 
   /**
