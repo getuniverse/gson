@@ -99,23 +99,23 @@ public final class ConstructorConstructor {
   private <T> ObjectConstructor<T> newDefaultConstructor(Class<? super T> rawType) {
     try {
       final Constructor<? super T> constructor = rawType.getDeclaredConstructor();
-      if (!constructor.isAccessible()) {
+      if (!constructor.isAccessible() && rawType.getClassLoader() != null) {
         accessor.makeAccessible(constructor);
       }
       return new ObjectConstructor<T>() {
         @SuppressWarnings("unchecked") // T is the same raw type as is requested
         @Override public T construct() {
           try {
-            Object[] args = null;
-            return (T) constructor.newInstance(args);
+            return (T) constructor.newInstance();
           } catch (InstantiationException e) {
             // TODO: JsonParseException ?
             throw new RuntimeException("Failed to invoke " + constructor + " with no args", e);
           } catch (InvocationTargetException e) {
-            // TODO: don't wrap if cause is unchecked!
+              final Throwable cause = e.getTargetException();
             // TODO: JsonParseException ?
-            throw new RuntimeException("Failed to invoke " + constructor + " with no args",
-                e.getTargetException());
+              throw cause instanceof RuntimeException
+                    ? (RuntimeException) cause
+                    : new RuntimeException("Failed to invoke " + constructor + " with no args", cause);
           } catch (IllegalAccessException e) {
             throw new InvalidStateException(e);
           }
