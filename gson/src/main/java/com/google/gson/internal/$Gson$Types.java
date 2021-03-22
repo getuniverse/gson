@@ -132,20 +132,22 @@ public final class $Gson$Types {
     } else if (type instanceof ParameterizedType) {
       ParameterizedType parameterizedType = (ParameterizedType) type;
 
-      // I'm not exactly sure why getRawType() returns Type instead of Class.
-      // Neal isn't either but suspects some pathological case related
-      // to nested classes exists.
       Type rawType = parameterizedType.getRawType();
-      checkArgument(rawType instanceof Class);
-      return (Class<?>) rawType;
+      return getRawType(rawType);
 
     } else if (type instanceof GenericArrayType) {
       Type componentType = ((GenericArrayType)type).getGenericComponentType();
       return Array.newInstance(getRawType(componentType), 0).getClass();
 
     } else if (type instanceof TypeVariable) {
-      // we could use the variable's bounds, but that won't work if there are multiple.
-      // having a raw type that's more general than necessary is okay
+      TypeVariable<?> variable = (TypeVariable<?>) type;
+
+      for (final TypeVariable<?> defined : variable.getGenericDeclaration().getTypeParameters()) {
+        if (Objects.equals(defined.getName(), variable.getName())) {
+          return getRawType(defined.getBounds()[0]);
+        }
+      }
+
       return Object.class;
 
     } else if (type instanceof WildcardType) {
