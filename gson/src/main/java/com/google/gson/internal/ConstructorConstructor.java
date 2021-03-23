@@ -133,7 +133,7 @@ public final class ConstructorConstructor {
   @SuppressWarnings("unchecked") // use runtime checks to guarantee that 'T' is what it is
   private <T> ObjectConstructor<T> newDefaultImplementationConstructor(
       final Type type, Class<? super T> rawType) {
-    if (Collection.class.isAssignableFrom(rawType)) {
+    if (Iterable.class.isAssignableFrom(rawType)) {
       if (SortedSet.class.isAssignableFrom(rawType)) {
         return new ObjectConstructor<T>() {
           @Override public T construct() {
