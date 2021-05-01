@@ -20,7 +20,6 @@ import com.google.gson.internal.Excluder;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -39,7 +38,7 @@ public final class GsonTest extends TestCase {
       .disableInnerClassSerialization();
 
   private static final FieldNamingStrategy CUSTOM_FIELD_NAMING_STRATEGY = new FieldNamingStrategy() {
-    @Override public String translateName(Field f) {
+    @Override public String translateName(final String name) {
       return "foo";
     }
   };

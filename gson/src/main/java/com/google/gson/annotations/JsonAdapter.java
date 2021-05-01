@@ -80,8 +80,8 @@ import java.lang.annotation.Target;
  *
  * <p>The class referenced by this annotation must be either a {@link
  * TypeAdapter} or a {@link TypeAdapterFactory}, or must implement one
- * or both of {@link JsonDeserializer} or {@link JsonSerializer}. 
- * Using {@link TypeAdapterFactory} makes it possible to delegate 
+ * or both of {@link JsonDeserializer} or {@link JsonSerializer}.
+ * Using {@link TypeAdapterFactory} makes it possible to delegate
  * to the enclosing {@code Gson} instance.
  *
  * @since 2.3
@@ -92,7 +92,6 @@ import java.lang.annotation.Target;
  */
 // Note that the above example is taken from AdaptAnnotationTest.
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.FIELD})
 public @interface JsonAdapter {
 
   /** Either a {@link TypeAdapter} or {@link TypeAdapterFactory}, or one or both of {@link JsonDeserializer} or {@link JsonSerializer}. */

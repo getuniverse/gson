@@ -25,8 +25,6 @@ import com.google.gson.common.TestTypes.StringWrapper;
 
 import junit.framework.TestCase;
 
-import java.lang.reflect.Field;
-
 /**
  * Functional tests for naming policies.
  *
@@ -169,8 +167,8 @@ public class NamingPolicyTest extends TestCase {
 
   private static final class UpperCaseNamingStrategy implements FieldNamingStrategy {
     @Override
-    public String translateName(Field f) {
-      return f.getName().toUpperCase();
+    public String translateName(final String name) {
+      return name.toUpperCase();
     }
   }
 
