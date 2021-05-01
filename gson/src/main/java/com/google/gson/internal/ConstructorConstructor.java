@@ -16,6 +16,9 @@
 
 package com.google.gson.internal;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
@@ -37,6 +40,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.function.Function;
 
 import com.google.gson.InstanceCreator;
 import com.google.gson.JsonIOException;
@@ -47,6 +51,32 @@ import com.google.gson.reflect.TypeToken;
  * Returns a function that can construct an instance of a requested type.
  */
 public final class ConstructorConstructor {
+  private static final Function<Constructor<?>, Boolean> canAccess;
+  
+  static {
+      Function<Constructor<?>, Boolean> _canAccess;
+
+      try {
+          final MethodHandle handle = MethodHandles.lookup().unreflect(Class.class.getMethod("canAccess", Object.class));
+
+          _canAccess = constructor -> {
+              try {
+                  return (boolean) handle.invoke(constructor, constructor.getDeclaringClass());
+              } catch (final RuntimeException | Error error) {
+                  throw error;
+              } catch (final Throwable error) {
+                  throw new IllegalStateException(error);
+              }
+          };
+      } catch (IllegalAccessException e) {
+          throw new IllegalStateException("Constructor.canAccess(Object) not accessible");
+      } catch (NoSuchMethodException e) {
+          _canAccess = AccessibleObject::isAccessible;
+      }
+
+      canAccess = _canAccess;
+  }
+
   private final Map<Type, InstanceCreator<?>> instanceCreators;
   private final ReflectionAccessor accessor = ReflectionAccessor.getInstance();
 
@@ -99,23 +129,38 @@ public final class ConstructorConstructor {
   private <T> ObjectConstructor<T> newDefaultConstructor(Class<? super T> rawType) {
     try {
       final Constructor<? super T> constructor = rawType.getDeclaredConstructor();
-      if (!constructor.isAccessible() && rawType.getClassLoader() != null) {
-        accessor.makeAccessible(constructor);
-      }
-      return new ObjectConstructor<T>() {
-        @SuppressWarnings("unchecked") // T is the same raw type as is requested
+        if (!canAccess.apply(constructor)) {
+            try {
+                accessor.makeAccessible(constructor);
+            } catch (Exception ignore) {
+                return new ObjectConstructor<T>() {
+    
+                    private final String message = rawType.getCanonicalName() + " have no accessible constructor, can only be serialized";
+    
+                    @Override
+                    public T construct() {
+                        throw new RuntimeException(message);
+                    }
+                };
+            }
+        }
+        return new ObjectConstructor<T>() {
+
+            private final String message = "Failed to invoke " + constructor + " with no args";
+
+            @SuppressWarnings("unchecked") // T is the same raw type as is requested
         @Override public T construct() {
           try {
             return (T) constructor.newInstance();
           } catch (InstantiationException e) {
             // TODO: JsonParseException ?
-            throw new RuntimeException("Failed to invoke " + constructor + " with no args", e);
+              throw new RuntimeException(message, e);
           } catch (InvocationTargetException e) {
               final Throwable cause = e.getTargetException();
             // TODO: JsonParseException ?
               throw cause instanceof RuntimeException
                     ? (RuntimeException) cause
-                    : new RuntimeException("Failed to invoke " + constructor + " with no args", cause);
+                    : new RuntimeException(message, cause);
           } catch (IllegalAccessException e) {
             throw new InvalidStateException(e);
           }
