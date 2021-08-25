@@ -16,20 +16,11 @@
 
 package com.google.gson.internal.bind;
 
-import static java.lang.invoke.MethodHandles.explicitCastArguments;
-import static java.lang.invoke.MethodType.methodType;
-
 import java.io.IOException;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.google.gson.FieldNamingStrategy;
@@ -38,10 +29,10 @@ import com.google.gson.JsonSyntaxException;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.annotations.JsonAdapter;
-import com.google.gson.annotations.SerializedName;
 import com.google.gson.internal.ConstructorConstructor;
 import com.google.gson.internal.InvalidStateException;
 import com.google.gson.internal.bind.util.Records;
+import com.google.gson.internal.bind.util.Records.Descriptor;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
@@ -51,8 +42,6 @@ import com.google.gson.stream.JsonWriter;
  * Type adapter that reflects over the fields and methods of a class.
  */
 public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
-
-    private static final MethodHandles.Lookup METHODS = MethodHandles.lookup();
 
     private final ConstructorConstructor constructorConstructor;
     private final FieldNamingStrategy fieldNamingPolicy;
@@ -67,6 +56,7 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
     }
 
     @Override
+    @SuppressWarnings("CodeBlock2Expr")
     public <T> TypeAdapter<T> create(Gson gson, final TypeToken<T> type) {
         Class<? super T> raw = type.getRawType();
 
@@ -74,62 +64,25 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
             return null; // not a record
         }
 
-        return Records.components(raw, (_names, _classes, _types, _boxed, _annotations, _getters) -> {
-            final MethodHandle constructor;
-
-            try {
-                final Constructor<? super T> _constructor = raw.getDeclaredConstructor(_classes);
-
-                if (!Modifier.isPublic(_constructor.getModifiers())) {
-                    _constructor.setAccessible(true);
-                }
-
-                constructor = explicitCastArguments(METHODS.unreflectConstructor(_constructor), methodType(raw, _boxed));
-            } catch (final RuntimeException | Error error) {
-                throw error;
-            } catch (final Throwable error) {
-                throw new IllegalStateException(error);
-            }
-
-            return new Adapter<>(constructor, getComponents(gson, type, _names, _classes, _types, _annotations, _getters));
+        return Records.components(type.getType(), raw, fieldNamingPolicy, descriptor -> {
+            return new Adapter<>(descriptor.constructor, getComponents(gson, type, descriptor));
         });
-    }
-
-    /** first element holds the default name */
-    private List<String> getFieldNames(AnnotatedElement f, String name) {
-        SerializedName annotation = f.getAnnotation(SerializedName.class);
-        if (annotation == null) {
-            return Collections.singletonList(fieldNamingPolicy.translateName(name));
-        }
-
-        String serializedName = annotation.value();
-        String[] alternates = annotation.alternate();
-        if (alternates.length == 0) {
-            return Collections.singletonList(serializedName);
-        }
-
-        List<String> fieldNames = new ArrayList<>(alternates.length + 1);
-        fieldNames.add(serializedName);
-        Collections.addAll(fieldNames, alternates);
-        return fieldNames;
     }
 
     private BoundComponent createBoundComponent(final int index,
                                                 final Gson context,
-                                                final AnnotatedElement[] components,
+                                                final JsonAdapter jsonAdapter,
                                                 final String name,
                                                 final Class<?> fieldClass,
                                                 final Type fieldType,
                                                 final MethodHandle getter) {
         TypeAdapter<?> typeAdapter = null;
 
-        final JsonAdapter annotation = components[index].getAnnotation(JsonAdapter.class);
-
-        if (annotation != null) {
+        if (jsonAdapter != null) {
             typeAdapter = jsonAdapterFactory.getTypeAdapter(constructorConstructor,
                                                             context,
                                                             TypeToken.get(fieldType),
-                                                            annotation);
+                                                            jsonAdapter);
         }
 
         final boolean wrap = typeAdapter == null;
@@ -141,28 +94,26 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
         return new BoundComponent(index, name, getter, typeAdapter, wrap, context, fieldType);
     }
 
-    private Map<String, BoundComponent> getComponents(Gson context,
-                                                      TypeToken<?> type,
-                                                      String[] _names,
-                                                      Class<?>[] _classes,
-                                                      Type[] _types,
-                                                      AnnotatedElement[] _annotations,
-                                                      MethodHandle[] _getters) {
+    private Map<String, BoundComponent> getComponents(Gson context, TypeToken<?> type, Descriptor descriptor) {
         final Map<String, BoundComponent> result = new LinkedHashMap<>();
 
-        for (int i = 0, ii = _names.length; i < ii; ++i) {
-            final List<String> fieldNames = getFieldNames(_annotations[i], _names[i]);
+        for (int i = 0, ii = descriptor.names.length; i < ii; ++i) {
+            final String[] fieldNames = descriptor.names[i];
+            final JsonAdapter adapter = descriptor.adapters[i];
+            final Class<?> _class = descriptor.classes[i];
+            final Type _type = descriptor.types[i];
+            final MethodHandle getter = descriptor.getters[i];
 
-            for (int j = 0, jj = fieldNames.size(); j < jj; ++j) {
-                final String name = fieldNames.get(j);
+            for (int j = 0, jj = fieldNames.length; j < jj; ++j) {
+                final String name = fieldNames[j];
                 final BoundComponent boundComponent = createBoundComponent(i,
                                                                            context,
-                                                                           _annotations,
+                                                                           adapter,
                                                                            name,
-                                                                           _classes[i],
-                                                                           _types[i],
+                                                                           _class,
+                                                                           _type,
                                                                            // only serialize the default name
-                                                                           j == 0 ? _getters[i] : null
+                                                                           j == 0 ? getter : null
                 );
 
                 final BoundComponent previous = result.put(name, boundComponent);

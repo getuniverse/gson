@@ -1,16 +1,30 @@
 package com.google.gson.internal.bind.util;
 
-import java.lang.annotation.Annotation;
+import static java.lang.invoke.MethodHandles.explicitCastArguments;
+import static java.lang.invoke.MethodType.methodType;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
 
+import com.google.gson.FieldNamingStrategy;
+import com.google.gson.annotations.JsonAdapter;
+import com.google.gson.annotations.SerializedName;
+import com.google.gson.internal.$Gson$Types;
 import com.google.gson.internal.InvalidStateException;
+import com.google.gson.internal.bind.ReflectiveTypeAdapterFactory;
 
 /**
  * Java record related utilities.
@@ -107,7 +121,6 @@ public final class Records {
                 }
             };
         } catch (final NoSuchMethodException | IllegalAccessException error) {
-            error.printStackTrace();
             isRecord = ignore -> false;
         }
 
@@ -119,40 +132,14 @@ public final class Records {
         GET_ACCESSOR = getAccessor;
     }
 
-    public static boolean isRecord(final Class _class) {
+    public static boolean isRecord(final Class<?> _class) {
         return IS_RECORD.test(_class);
     }
 
-    public static <T> T components(final Class _class, final Consumer<T> consumer) {
-        final Object[] components = GET_RECORD_COMPONENTS.apply(_class);
-        final String[] names = new String[components.length];
-        final Type[] types = new Class[components.length];
-        final Class<?>[] classes = new Class[components.length];
-        final Class<?>[] boxed = new Class[components.length];
-        final AnnotatedElement[] annotations = new AnnotatedElement[components.length];
-        final MethodHandle[] getters = new MethodHandle[components.length];
+    private static final Map<Type, Descriptor> descriptorCache = new ConcurrentHashMap<>(128, 0.75f, 32);
 
-        for (int i = 0, ii = components.length; i < ii; ++i) {
-            final Object component = components[i];
-
-            annotations[i] = ((AnnotatedElement) component);
-            types[i] = GET_GENERIC_TYPE.apply(component);
-            classes[i] = GET_TYPE.apply(component);
-            names[i] = GET_NAME.apply(component);
-            boxed[i] = boxedType(classes[i]);
-
-            final Method getter = GET_ACCESSOR.apply(component);
-
-            getter.setAccessible(true);
-
-            try {
-                getters[i] = METHODS.unreflect(getter);
-            } catch (final IllegalAccessException e) {
-                throw new InvalidStateException(e);
-            }
-        }
-
-        return consumer.accept(names, classes, types, boxed, annotations, getters);
+    public static <T> T components(final Type type, final Class _class, final FieldNamingStrategy fieldNamingPolicy, final Function<Descriptor, T> consumer) {
+        return consumer.apply(descriptorCache.computeIfAbsent(type, ignore -> new Descriptor(type, _class, fieldNamingPolicy)));
     }
 
     private static Class<?> boxedType(final Class<?> type) {
@@ -173,12 +160,84 @@ public final class Records {
         }
     }
 
-    public interface Consumer<T> {
+    /** Copied from {@link ReflectiveTypeAdapterFactory#getFieldNames(Field)} */
+    private static String[] getFieldNames(final FieldNamingStrategy fieldNamingPolicy,
+                                          final AnnotatedElement element,
+                                          final String name) {
+        final SerializedName annotation = element.getAnnotation(SerializedName.class);
 
-        T accept(String[] names,
-                 Class<?>[] classes,
-                 Type[] types, Class<?>[] boxed,
-                 AnnotatedElement[] annotations,
-                 MethodHandle[] getters);
+        if (annotation == null) {
+            return new String[] { fieldNamingPolicy.translateName(name) };
+        }
+
+        final String serializedName = annotation.value();
+        final String[] alternates = annotation.alternate();
+
+        if (alternates.length == 0) {
+            return new String[] { serializedName };
+        }
+
+        final List<String> fieldNames = new ArrayList<>(alternates.length + 1);
+
+        fieldNames.add(serializedName);
+        Collections.addAll(fieldNames, alternates);
+
+        return fieldNames.toArray(new String[0]);
+    }
+
+    public static final class Descriptor {
+
+        public final String[][] names;
+        public final Type[] types;
+        public final Class<?>[] classes;
+        public final JsonAdapter[] adapters;
+        public final MethodHandle[] getters;
+        public final MethodHandle constructor;
+
+        Descriptor(final Type targetType, final Class<?> recordClass, final FieldNamingStrategy fieldNamingPolicy) {
+            final Object[] components = GET_RECORD_COMPONENTS.apply(recordClass);
+            final Class<?>[] boxed = new Class[components.length];
+
+            final String[][] names = this.names = new String[components.length][];
+            final Type[] types = this.types = new Type[components.length];
+            final Class<?>[] classes = this.classes = new Class[components.length];
+            final MethodHandle[] getters = this.getters = new MethodHandle[components.length];
+            final JsonAdapter[] adapters = this.adapters = new JsonAdapter[components.length];
+
+            for (int i = 0, ii = components.length; i < ii; ++i) {
+                final Object component = components[i];
+
+                final Method getter = GET_ACCESSOR.apply(component);
+
+                getter.setAccessible(true);
+
+                try {
+                    getters[i] = METHODS.unreflect(getter);
+                } catch (final IllegalAccessException e) {
+                    throw new InvalidStateException(e);
+                }
+
+                final Class<?> _class = classes[i] = GET_TYPE.apply(component);
+
+                types[i] = $Gson$Types.resolve(targetType, recordClass, GET_GENERIC_TYPE.apply(component));
+                boxed[i] = boxedType(_class);
+                names[i] = getFieldNames(fieldNamingPolicy, getter, GET_NAME.apply(component));
+                adapters[i] = getter.getAnnotation(JsonAdapter.class);
+            }
+
+            try {
+                final Constructor<?> _constructor = recordClass.getDeclaredConstructor(classes);
+
+                if (!Modifier.isPublic(_constructor.getModifiers())) {
+                    _constructor.setAccessible(true);
+                }
+
+                this.constructor = explicitCastArguments(METHODS.unreflectConstructor(_constructor), methodType(recordClass, boxed));
+            } catch (final RuntimeException | Error error) {
+                throw error;
+            } catch (final Throwable error) {
+                throw new IllegalStateException(error);
+            }
+        }
     }
 }
