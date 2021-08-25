@@ -56,7 +56,7 @@ public class GsonVersionDiagnosticsTest extends TestCase {
   public void testVersionPattern() {
     assertTrue(GSON_VERSION_PATTERN.matcher("(GSON 2.8.5)").matches());
     assertTrue(GSON_VERSION_PATTERN.matcher("(GSON 2.8.5-SNAPSHOT)").matches());
-    assertTrue(GSON_VERSION_PATTERN.matcher("(GSON 2.8.5-universe-1-SNAPSHOT)").matches());
+    assertTrue(GSON_VERSION_PATTERN.matcher("(GSON 2.8.8-happeo-1-SNAPSHOT)").matches());
   }
 
   @Test

@@ -151,7 +151,7 @@ public final class ConstructorConstructor {
             @SuppressWarnings("unchecked") // T is the same raw type as is requested
         @Override public T construct() {
           try {
-            return (T) constructor.newInstance();
+            return (T) constructor.newInstance((Object[]) null);
           } catch (InstantiationException e) {
             // TODO: JsonParseException ?
               throw new RuntimeException(message, e);
