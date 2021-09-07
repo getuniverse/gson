@@ -16,6 +16,8 @@
 
 package com.google.gson;
 
+import java.lang.reflect.Field;
+
 /**
  * A mechanism for providing custom field naming in Gson. This allows the client code to translate
  * field names into a particular convention that is not supported as a normal Java field
@@ -30,9 +32,22 @@ public interface FieldNamingStrategy {
   /**
    * Translates the field name into its JSON field name representation.
    *
-   * @param name the field name to translate
+   * @param f the field object that we are translating
    * @return the translated field name.
    * @since 1.3
    */
-  public String translateName(String name);
+  default String translateName(Field f) {
+      return translateName(f.getName());
+  }
+
+  /**
+   * Translates an attribute name into its JSON property name representation.
+   *
+   * @param name the attribute name to translate.
+   * @return the translated property name.
+   * @since 1.3
+   */
+  default String translateName(String name) {
+      throw new UnsupportedOperationException("Not implemented by " + getClass());
+  }
 }
