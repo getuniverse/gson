@@ -113,8 +113,8 @@ public final class JsonArrayTest extends TestCase {
       jsonArray.get(-1);
       fail("expected get to fail");
     } catch (IndexOutOfBoundsException e) {
-      assertEquals("Expected an exception message",
-              "Index -1 out of bounds for length 1", e.getMessage());
+        String message = e.getMessage();
+        assertTrue("Expected -1 in the exception message: " + message, message.contains("-1"));
     }
     try {
       jsonArray.getAsString();
