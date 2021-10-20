@@ -817,7 +817,7 @@ public final class TypeAdapters {
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
       Class<? super T> rawType = typeToken.getRawType();
-      if (!Enum.class.isAssignableFrom(rawType) || rawType == Enum.class) {
+      if (!Enum.class.isAssignableFrom(rawType)) {
         return null;
       }
       if (!rawType.isEnum()) {

@@ -76,19 +76,20 @@ public class DefaultDateTypeAdapterTest extends TestCase {
     Locale defaultLocale = Locale.getDefault();
     Locale.setDefault(Locale.FRANCE);
     try {
-      String afterYearSep = JavaVersion.isJava9OrLater() ? " à " : " ";
-      assertParsed(String.format("1 janv. 1970%s00:00:00", afterYearSep),
+      String afterYearSep1 = JavaVersion.isJava9OrLater() ? JavaVersion.getMajorJavaVersion() < 16 ? " à " : ", " : " ";
+      String afterYearSep2 = JavaVersion.isJava9OrLater() ? " à " : " ";
+      assertParsed(String.format("1 janv. 1970%s00:00:00", afterYearSep1),
               new DefaultDateTypeAdapter(Date.class));
       assertParsed("01/01/70", new DefaultDateTypeAdapter(Date.class, DateFormat.SHORT));
       assertParsed("1 janv. 1970", new DefaultDateTypeAdapter(Date.class, DateFormat.MEDIUM));
       assertParsed("1 janvier 1970", new DefaultDateTypeAdapter(Date.class, DateFormat.LONG));
       assertParsed("01/01/70 00:00",
           new DefaultDateTypeAdapter(DateFormat.SHORT, DateFormat.SHORT));
-      assertParsed(String.format("1 janv. 1970%s00:00:00", afterYearSep),
+      assertParsed(String.format("1 janv. 1970%s00:00:00", afterYearSep1),
           new DefaultDateTypeAdapter(DateFormat.MEDIUM, DateFormat.MEDIUM));
-      assertParsed(String.format("1 janvier 1970%s00:00:00 UTC", afterYearSep),
+      assertParsed(String.format("1 janvier 1970%s00:00:00 UTC", afterYearSep2),
           new DefaultDateTypeAdapter(DateFormat.LONG, DateFormat.LONG));
-      assertParsed(JavaVersion.isJava9OrLater() ? (JavaVersion.getMajorJavaVersion() <11 ?
+      assertParsed(JavaVersion.isJava9OrLater() ? (JavaVersion.getMajorJavaVersion() < 11 ?
                       "jeudi 1 janvier 1970 à 00:00:00 Coordinated Universal Time" :
                       "jeudi 1 janvier 1970 à 00:00:00 Temps universel coordonné") :
                       "jeudi 1 janvier 1970 00 h 00 UTC",
