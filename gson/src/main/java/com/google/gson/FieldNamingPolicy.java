@@ -16,6 +16,7 @@
 
 package com.google.gson;
 
+import java.lang.reflect.Field;
 import java.util.Locale;
 
 /**
@@ -34,8 +35,8 @@ public enum FieldNamingPolicy implements FieldNamingStrategy {
    * unchanged.
    */
   IDENTITY() {
-    @Override public String translateName(final String name) {
-      return name;
+    @Override public String translateName(Field f) {
+      return f.getName();
     }
   },
 
@@ -50,8 +51,8 @@ public enum FieldNamingPolicy implements FieldNamingStrategy {
    * </ul>
    */
   UPPER_CAMEL_CASE() {
-    @Override public String translateName(final String name) {
-      return upperCaseFirstLetter(name);
+    @Override public String translateName(Field f) {
+      return upperCaseFirstLetter(f.getName());
     }
   },
 
@@ -69,8 +70,8 @@ public enum FieldNamingPolicy implements FieldNamingStrategy {
    * @since 1.4
    */
   UPPER_CAMEL_CASE_WITH_SPACES() {
-    @Override public String translateName(final String name) {
-      return upperCaseFirstLetter(separateCamelCase(name, " "));
+    @Override public String translateName(Field f) {
+      return upperCaseFirstLetter(separateCamelCase(f.getName(), " "));
     }
   },
 
@@ -87,8 +88,8 @@ public enum FieldNamingPolicy implements FieldNamingStrategy {
    * </ul>
    */
   LOWER_CASE_WITH_UNDERSCORES() {
-    @Override public String translateName(final String name) {
-      return separateCamelCase(name, "_").toLowerCase(Locale.ENGLISH);
+    @Override public String translateName(Field f) {
+      return separateCamelCase(f.getName(), "_").toLowerCase(Locale.ENGLISH);
     }
   },
 
@@ -110,8 +111,8 @@ public enum FieldNamingPolicy implements FieldNamingStrategy {
    * @since 1.4
    */
   LOWER_CASE_WITH_DASHES() {
-    @Override public String translateName(final String name) {
-      return separateCamelCase(name, "-").toLowerCase(Locale.ENGLISH);
+    @Override public String translateName(Field f) {
+      return separateCamelCase(f.getName(), "-").toLowerCase(Locale.ENGLISH);
     }
   },
 
@@ -133,8 +134,8 @@ public enum FieldNamingPolicy implements FieldNamingStrategy {
    * @since 2.8
    */
   LOWER_CASE_WITH_DOTS() {
-    @Override public String translateName(final String name) {
-      return separateCamelCase(name, ".").toLowerCase(Locale.ENGLISH);
+    @Override public String translateName(Field f) {
+      return separateCamelCase(f.getName(), ".").toLowerCase(Locale.ENGLISH);
     }
   };
 

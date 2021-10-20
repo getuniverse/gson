@@ -163,11 +163,11 @@ public final class Records {
     /** Copied from {@link ReflectiveTypeAdapterFactory#getFieldNames(Field)} */
     private static String[] getFieldNames(final FieldNamingStrategy fieldNamingPolicy,
                                           final AnnotatedElement element,
-                                          final String name) {
+                                          final Field field) {
         final SerializedName annotation = element.getAnnotation(SerializedName.class);
 
         if (annotation == null) {
-            return new String[] { fieldNamingPolicy.translateName(name) };
+            return new String[] { fieldNamingPolicy.translateName(field) };
         }
 
         final String serializedName = annotation.value();
@@ -206,7 +206,6 @@ public final class Records {
 
             for (int i = 0, ii = components.length; i < ii; ++i) {
                 final Object component = components[i];
-
                 final Method getter = GET_ACCESSOR.apply(component);
 
                 getter.setAccessible(true);
@@ -218,10 +217,18 @@ public final class Records {
                 }
 
                 final Class<?> _class = classes[i] = GET_TYPE.apply(component);
+                final Type _type = GET_GENERIC_TYPE.apply(component);
+                final Field field;
 
-                types[i] = $Gson$Types.resolve(targetType, recordClass, GET_GENERIC_TYPE.apply(component));
+                try {
+                    field = recordClass.getDeclaredField(GET_NAME.apply(component));
+                } catch (final NoSuchFieldException error) {
+                    throw new IllegalStateException(error);
+                }
+
+                types[i] = $Gson$Types.resolve(targetType, recordClass, _type);
                 boxed[i] = boxedType(_class);
-                names[i] = getFieldNames(fieldNamingPolicy, getter, GET_NAME.apply(component));
+                names[i] = getFieldNames(fieldNamingPolicy, getter, field);
                 adapters[i] = getter.getAnnotation(JsonAdapter.class);
             }
 

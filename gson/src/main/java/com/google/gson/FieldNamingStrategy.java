@@ -36,18 +36,5 @@ public interface FieldNamingStrategy {
    * @return the translated field name.
    * @since 1.3
    */
-  default String translateName(Field f) {
-      return translateName(f.getName());
-  }
-
-  /**
-   * Translates an attribute name into its JSON property name representation.
-   *
-   * @param name the attribute name to translate.
-   * @return the translated property name.
-   * @since 1.3
-   */
-  default String translateName(String name) {
-      throw new UnsupportedOperationException("Not implemented by " + getClass());
-  }
+  public String translateName(Field f);
 }

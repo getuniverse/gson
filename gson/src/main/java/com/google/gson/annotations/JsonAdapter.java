@@ -92,6 +92,7 @@ import java.lang.annotation.Target;
  */
 // Note that the above example is taken from AdaptAnnotationTest.
 @Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.FIELD})
 public @interface JsonAdapter {
 
   /** Either a {@link TypeAdapter} or {@link TypeAdapterFactory}, or one or both of {@link JsonDeserializer} or {@link JsonSerializer}. */

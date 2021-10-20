@@ -18,7 +18,6 @@ package com.google.gson.internal.bind;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Type;
 import java.util.LinkedHashMap;
 import java.util.Map;
