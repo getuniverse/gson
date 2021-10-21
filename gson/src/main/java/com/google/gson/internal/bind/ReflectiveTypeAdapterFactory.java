@@ -157,7 +157,9 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
         if (!serialize && !deserialize) {
           continue;
         }
-        accessor.makeAccessible(field);
+        if (!accessor.makeAccessible(field)) {
+          throw new InvalidStateException("Cannot access field " + field);  
+        }
         Type fieldType = $Gson$Types.resolve(type.getType(), raw, field.getGenericType());
         List<String> fieldNames = getFieldNames(field);
         BoundField previous = null;

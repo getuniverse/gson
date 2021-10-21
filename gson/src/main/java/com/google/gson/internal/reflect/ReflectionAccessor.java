@@ -15,9 +15,10 @@
  */
 package com.google.gson.internal.reflect;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.AccessibleObject;
-
-import com.google.gson.internal.JavaVersion;
+import java.lang.reflect.Method;
 
 /**
  * Provides a replacement for {@link AccessibleObject#setAccessible(boolean)}, which may be used to
@@ -30,25 +31,48 @@ import com.google.gson.internal.JavaVersion;
  * <p/>
  * Works both for Java 9 and earlier Java versions.
  */
-public abstract class ReflectionAccessor {
+public final class ReflectionAccessor {
 
   // the singleton instance, use getInstance() to obtain
-  private static final ReflectionAccessor instance = new PreJava9ReflectionAccessor();
+  private static final ReflectionAccessor instance = new ReflectionAccessor();
+
+  private final MethodHandle trySetAccessible = getTrySetAccessibleMethod();
 
   /**
    * Does the same as {@code ao.setAccessible(true)}, but never throws
    * {@link java.lang.reflect.InaccessibleObjectException}
+   * @return <code>true</code> if the object is accessible.
    */
-  public abstract void makeAccessible(AccessibleObject ao);
+  public boolean makeAccessible(AccessibleObject ao) {
+    try {
+      if (trySetAccessible != null) {
+        return (boolean) trySetAccessible.invoke(ao);
+      } else if (!ao.isAccessible()) {  // if trySetAccessible() is not available then neither is canAccess()
+        ao.setAccessible(true);
+      }
+      return true;
+    } catch (final Throwable error) {
+      return false;
+    }
+  }
 
   /**
-   * Obtains a {@link ReflectionAccessor} instance suitable for the current Java version.
+   * Obtains a {@link ReflectionAccessor} instance.
    * <p>
-   * You may need one a reflective operation in your code throws {@link java.lang.reflect.InaccessibleObjectException}.
+   * You may need one if a reflective operation in your code throws {@link java.lang.reflect.InaccessibleObjectException}.
    * In such a case, use {@link ReflectionAccessor#makeAccessible(AccessibleObject)} on a field, method or constructor
    * (instead of basic {@link AccessibleObject#setAccessible(boolean)}).
    */
   public static ReflectionAccessor getInstance() {
     return instance;
+  }
+
+  private static MethodHandle getTrySetAccessibleMethod() {
+    try {
+        Method method = AccessibleObject.class.getMethod("trySetAccessible");
+        return MethodHandles.publicLookup().unreflect(method);
+    } catch (Exception e) {
+      return null;
+    }
   }
 }

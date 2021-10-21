@@ -16,16 +16,12 @@
 
 package com.google.gson.internal;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -40,7 +36,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.function.Function;
 
 import com.google.gson.InstanceCreator;
 import com.google.gson.JsonIOException;
@@ -51,31 +46,6 @@ import com.google.gson.reflect.TypeToken;
  * Returns a function that can construct an instance of a requested type.
  */
 public final class ConstructorConstructor {
-  private static final Function<Constructor<?>, Boolean> canAccess;
-  
-  static {
-      Function<Constructor<?>, Boolean> _canAccess;
-
-      try {
-          final MethodHandle handle = MethodHandles.lookup().unreflect(Class.class.getMethod("canAccess", Object.class));
-
-          _canAccess = constructor -> {
-              try {
-                  return (boolean) handle.invoke(constructor, constructor.getDeclaringClass());
-              } catch (final RuntimeException | Error error) {
-                  throw error;
-              } catch (final Throwable error) {
-                  throw new IllegalStateException(error);
-              }
-          };
-      } catch (IllegalAccessException e) {
-          throw new IllegalStateException("Constructor.canAccess(Object) not accessible");
-      } catch (NoSuchMethodException e) {
-          _canAccess = AccessibleObject::isAccessible;
-      }
-
-      canAccess = _canAccess;
-  }
 
   private final Map<Type, InstanceCreator<?>> instanceCreators;
   private final ReflectionAccessor accessor = ReflectionAccessor.getInstance();
@@ -129,20 +99,16 @@ public final class ConstructorConstructor {
   private <T> ObjectConstructor<T> newDefaultConstructor(Class<? super T> rawType) {
     try {
       final Constructor<? super T> constructor = rawType.getDeclaredConstructor();
-        if (!canAccess.apply(constructor)) {
-            try {
-                accessor.makeAccessible(constructor);
-            } catch (Exception ignore) {
-                return new ObjectConstructor<T>() {
-    
-                    private final String message = rawType.getCanonicalName() + " have no accessible constructor, can only be serialized";
-    
-                    @Override
-                    public T construct() {
-                        throw new RuntimeException(message);
-                    }
-                };
+        if (!accessor.makeAccessible(constructor)) {
+          return new ObjectConstructor<T>() {
+
+            private final String message = rawType.getCanonicalName() + " has no accessible constructor, can only be serialized";
+
+            @Override
+            public T construct() {
+              throw new RuntimeException(message);
             }
+          };
         }
         return new ObjectConstructor<T>() {
 
