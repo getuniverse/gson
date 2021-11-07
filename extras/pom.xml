@@ -7,7 +7,6 @@
   </parent>
 
   <artifactId>gson-extras</artifactId>
-  <packaging>jar</packaging>
   <inceptionYear>2008</inceptionYear>
   <name>Gson Extras</name>
   <description>Google Gson grab bag of utilities, type adapters, etc.</description>
