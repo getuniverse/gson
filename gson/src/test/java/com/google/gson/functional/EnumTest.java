@@ -200,17 +200,17 @@ public class EnumTest extends TestCase {
   }
 
   public void testEnumClassWithFields() {
-	  assertEquals("\"RED\"", gson.toJson(Color.RED));
-	  assertEquals("red", gson.fromJson("RED", Color.class).value);
+    assertEquals("\"RED\"", gson.toJson(Color.RED));
+    assertEquals("red", gson.fromJson("RED", Color.class).value);
   }
 
   public enum Color {
-	  RED("red", 1), BLUE("blue", 2), GREEN("green", 3);
-	  String value;
-	  int index;
-	  private Color(String value, int index) {
-		  this.value = value;
-		  this.index = index;
-	  }
+    RED("red", 1), BLUE("blue", 2), GREEN("green", 3);
+    String value;
+    int index;
+    private Color(String value, int index) {
+      this.value = value;
+      this.index = index;
+    }
   }
 }

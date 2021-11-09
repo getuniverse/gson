@@ -29,7 +29,7 @@ import com.google.gson.internal.ConstructorConstructor;
 import com.google.gson.internal.Excluder;
 import com.google.gson.internal.ObjectConstructor;
 import com.google.gson.internal.Primitives;
-import com.google.gson.internal.reflect.ReflectionAccessor;
+import com.google.gson.internal.reflect.ReflectionHelper;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
@@ -51,7 +51,6 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
   private final FieldNamingStrategy fieldNamingPolicy;
   private final Excluder excluder;
   private final JsonAdapterAnnotationTypeAdapterFactory jsonAdapterFactory;
-  private final ReflectionAccessor accessor = ReflectionAccessor.getInstance();
 
   public ReflectiveTypeAdapterFactory(ConstructorConstructor constructorConstructor,
       FieldNamingStrategy fieldNamingPolicy, Excluder excluder,
@@ -157,9 +156,7 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
         if (!serialize && !deserialize) {
           continue;
         }
-        if (!accessor.makeAccessible(field)) {
-          throw new InvalidStateException("Cannot access field " + field);  
-        }
+        ReflectionHelper.makeAccessible(field);
         Type fieldType = $Gson$Types.resolve(type.getType(), raw, field.getGenericType());
         List<String> fieldNames = getFieldNames(field);
         BoundField previous = null;
