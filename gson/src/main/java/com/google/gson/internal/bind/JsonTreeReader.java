@@ -250,6 +250,19 @@ public final class JsonTreeReader extends JsonReader {
     return result;
   }
 
+  JsonElement nextJsonElement() throws IOException {
+    final JsonToken peeked = peek();
+    if (peeked == JsonToken.NAME
+        || peeked == JsonToken.END_ARRAY
+        || peeked == JsonToken.END_OBJECT
+        || peeked == JsonToken.END_DOCUMENT) {
+      throw new IllegalStateException("Unexpected " + peeked + " when reading a JsonElement.");
+    }
+    final JsonElement element = (JsonElement) peekStack();
+    skipValue();
+    return element;
+  }
+
   @Override public void close() throws IOException {
     stack = new Object[] { SENTINEL_CLOSED };
     stackSize = 1;
@@ -271,7 +284,7 @@ public final class JsonTreeReader extends JsonReader {
   }
 
   @Override public String toString() {
-    return getClass().getSimpleName();
+    return getClass().getSimpleName() + locationString();
   }
 
   public void promoteNameToValue() throws IOException {
@@ -296,11 +309,11 @@ public final class JsonTreeReader extends JsonReader {
     StringBuilder result = new StringBuilder().append('$');
     for (int i = 0; i < stackSize; i++) {
       if (stack[i] instanceof JsonArray) {
-        if (stack[++i] instanceof Iterator) {
+        if (++i < stackSize && stack[i] instanceof Iterator) {
           result.append('[').append(pathIndices[i]).append(']');
         }
       } else if (stack[i] instanceof JsonObject) {
-        if (stack[++i] instanceof Iterator) {
+        if (++i < stackSize && stack[i] instanceof Iterator) {
           result.append('.');
           if (pathNames[i] != null) {
             result.append(pathNames[i]);
