@@ -2,7 +2,7 @@ Change Log
 ==========
 
 ## Version 2.8.9-happeo-1
-_2021-11-17_  [GitHub Diff](https://github.com/google/gson/compare/gson-parent-2.8.9...gson-parent-2.8.9-happeo-1)
+_2021-11-21_  [GitHub Diff](https://github.com/google/gson/compare/gson-parent-2.8.9...gson-parent-2.8.9-happeo-1)
 * [Fix race for concurrent serialization of recursive type](https://github.com/google/gson/pull/767/commits/ebcdd9e30109497e9bf3030f41c19f968eaa2212).
 * Supports Java 16+ records
 * Serializes objects with inaccessible constructor
