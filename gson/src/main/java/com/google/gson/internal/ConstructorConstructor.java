@@ -18,10 +18,13 @@ package com.google.gson.internal;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -48,9 +51,11 @@ import com.google.gson.reflect.TypeToken;
 public final class ConstructorConstructor {
 
   private final Map<Type, InstanceCreator<?>> instanceCreators;
+  private final boolean useJdkUnsafe;
 
-  public ConstructorConstructor(Map<Type, InstanceCreator<?>> instanceCreators) {
+  public ConstructorConstructor(Map<Type, InstanceCreator<?>> instanceCreators, boolean useJdkUnsafe) {
     this.instanceCreators = instanceCreators;
+    this.useJdkUnsafe = useJdkUnsafe;
   }
 
   public <T> ObjectConstructor<T> get(TypeToken<T> typeToken) {
@@ -92,10 +97,15 @@ public final class ConstructorConstructor {
     }
 
     // finally try unsafe
-    return newUnsafeAllocator(type, rawType);
+    return newUnsafeAllocator(rawType);
   }
 
   private <T> ObjectConstructor<T> newDefaultConstructor(Class<? super T> rawType) {
+    // Cannot invoke constructor of abstract class
+    if (Modifier.isAbstract(rawType.getModifiers())) {
+      return null;
+    }
+
     final Constructor<? super T> constructor;
     try {
       constructor = rawType.getDeclaredConstructor();
@@ -197,7 +207,26 @@ public final class ConstructorConstructor {
     }
 
     if (Map.class.isAssignableFrom(rawType)) {
-      if (ConcurrentNavigableMap.class.isAssignableFrom(rawType)) {
+      // Only support creation of EnumMap, but not of custom subtypes; for them type parameters
+      // and constructor parameter might have completely different meaning
+      if (rawType == EnumMap.class) {
+        return new ObjectConstructor<T>() {
+          @Override public T construct() {
+            if (type instanceof ParameterizedType) {
+              Type elementType = ((ParameterizedType) type).getActualTypeArguments()[0];
+              if (elementType instanceof Class) {
+                @SuppressWarnings("rawtypes")
+                T map = (T) new EnumMap((Class) elementType);
+                return map;
+              } else {
+                throw new JsonIOException("Invalid EnumMap type: " + type);
+              }
+            } else {
+              throw new JsonIOException("Invalid EnumMap type: " + type);
+            }
+          }
+        };
+      } else if (ConcurrentNavigableMap.class.isAssignableFrom(rawType)) {
         return new ObjectConstructor<T>() {
           @Override public T construct() {
             return (T) new ConcurrentSkipListMap<Object, Object>();
@@ -234,21 +263,32 @@ public final class ConstructorConstructor {
     return null;
   }
 
-  private <T> ObjectConstructor<T> newUnsafeAllocator(
-      final Type type, final Class<? super T> rawType) {
-    return new ObjectConstructor<T>() {
-      private final UnsafeAllocator unsafeAllocator = UnsafeAllocator.create();
-      @SuppressWarnings("unchecked")
-      @Override public T construct() {
-        try {
-          Object newInstance = unsafeAllocator.newInstance(rawType);
-          return (T) newInstance;
-        } catch (Exception e) {
-          throw new RuntimeException(("Unable to invoke no-args constructor for " + type + ". "
-              + "Registering an InstanceCreator with Gson for this type may fix this problem."), e);
+  private <T> ObjectConstructor<T> newUnsafeAllocator(final Class<? super T> rawType) {
+    if (useJdkUnsafe) {
+      return new ObjectConstructor<T>() {
+        private final UnsafeAllocator unsafeAllocator = UnsafeAllocator.create();
+        @Override public T construct() {
+          try {
+            @SuppressWarnings("unchecked")
+            T newInstance = (T) unsafeAllocator.newInstance(rawType);
+            return newInstance;
+          } catch (Exception e) {
+            throw new RuntimeException(("Unable to create instance of " + rawType + ". "
+                + "Registering an InstanceCreator or a TypeAdapter for this type, or adding a no-args "
+                + "constructor may fix this problem."), e);
+          }
         }
-      }
-    };
+      };
+    } else {
+      final String exceptionMessage = "Unable to create instance of " + rawType + "; usage of JDK Unsafe "
+          + "is disabled. Registering an InstanceCreator or a TypeAdapter for this type, adding a no-args "
+          + "constructor, or enabling usage of JDK Unsafe may fix this problem.";
+      return new ObjectConstructor<T>() {
+        @Override public T construct() {
+          throw new JsonIOException(exceptionMessage);
+        }
+      };
+    }
   }
 
   @Override public String toString() {

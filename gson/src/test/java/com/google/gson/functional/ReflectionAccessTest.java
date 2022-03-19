@@ -35,62 +35,6 @@ public class ReflectionAccessTest {
     return classLoader.loadClass(c.getName());
   }
 
-  @Test
-  public void testRestrictiveSecurityManager() throws Exception {
-    // Must use separate class loader, otherwise permission is not checked, see Class.getDeclaredFields()
-    Class<?> clazz = loadClassWithDifferentClassLoader(ClassWithPrivateMembers.class);
-
-    final Permission accessDeclaredMembers = new RuntimePermission("accessDeclaredMembers");
-    final Permission suppressAccessChecks = new ReflectPermission("suppressAccessChecks");
-    SecurityManager original = System.getSecurityManager();
-    SecurityManager restrictiveManager = new SecurityManager() {
-      @Override
-      public void checkPermission(Permission perm) {
-        if (accessDeclaredMembers.equals(perm)) {
-          throw new SecurityException("Gson: no-member-access");
-        }
-        if (suppressAccessChecks.equals(perm)) {
-          throw new SecurityException("Gson: no-suppress-access-check");
-        }
-      }
-    };
-    System.setSecurityManager(restrictiveManager);
-
-    try {
-      Gson gson = new Gson();
-      try {
-        // Getting reflection based adapter should fail
-        gson.getAdapter(clazz);
-        fail();
-      } catch (SecurityException e) {
-        assertEquals("Gson: no-member-access", e.getMessage());
-      }
-
-      final AtomicBoolean wasReadCalled = new AtomicBoolean(false);
-      gson = new GsonBuilder()
-        .registerTypeAdapter(clazz, new TypeAdapter<Object>() {
-          @Override
-          public void write(JsonWriter out, Object value) throws IOException {
-            out.value("custom-write");
-          }
-
-          @Override
-          public Object read(JsonReader in) throws IOException {
-            in.skipValue();
-            wasReadCalled.set(true);
-            return null;
-          }}
-        )
-        .create();
-
-      assertEquals("\"custom-write\"", gson.toJson(null, clazz));
-      assertNull(gson.fromJson("{}", clazz));
-      assertTrue(wasReadCalled.get());
-    } finally {
-      System.setSecurityManager(original);
-    }
-  }
-
   /**
    * Test serializing an instance of a non-accessible internal class, but where
    * Gson supports serializing one of its superinterfaces.

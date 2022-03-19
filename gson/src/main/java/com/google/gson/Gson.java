@@ -39,6 +39,7 @@ import com.google.gson.internal.InvalidStateException;
 import com.google.gson.internal.ConstructorConstructor;
 import com.google.gson.internal.Excluder;
 import com.google.gson.internal.GsonBuildConfig;
+import com.google.gson.internal.LazilyParsedNumber;
 import com.google.gson.internal.Primitives;
 import com.google.gson.internal.Streams;
 import com.google.gson.internal.bind.ArrayTypeAdapter;
@@ -78,7 +79,7 @@ import com.google.gson.stream.MalformedJsonException;
  * MyType target = new MyType();
  * String json = gson.toJson(target); // serializes target to Json
  * MyType target2 = gson.fromJson(json, MyType.class); // deserializes json into target2
- * </pre></p>
+ * </pre>
  *
  * <p>If the object that your are serializing/deserializing is a {@code ParameterizedType}
  * (i.e. contains at least one type parameter and may be an array) then you must use the
@@ -93,7 +94,7 @@ import com.google.gson.stream.MalformedJsonException;
  * Gson gson = new Gson();
  * String json = gson.toJson(target, listType);
  * List&lt;String&gt; target2 = gson.fromJson(json, listType);
- * </pre></p>
+ * </pre>
  *
  * <p>See the <a href="https://sites.google.com/site/gson/gson-user-guide">Gson User Guide</a>
  * for a more complete set of examples.</p>
@@ -112,6 +113,11 @@ public final class Gson {
   static final boolean DEFAULT_SERIALIZE_NULLS = false;
   static final boolean DEFAULT_COMPLEX_MAP_KEYS = false;
   static final boolean DEFAULT_SPECIALIZE_FLOAT_VALUES = false;
+  static final boolean DEFAULT_USE_JDK_UNSAFE = true;
+  static final String DEFAULT_DATE_PATTERN = null;
+  static final FieldNamingStrategy DEFAULT_FIELD_NAMING_STRATEGY = FieldNamingPolicy.IDENTITY;
+  static final ToNumberStrategy DEFAULT_OBJECT_TO_NUMBER_STRATEGY = ToNumberPolicy.DOUBLE;
+  static final ToNumberStrategy DEFAULT_NUMBER_TO_NUMBER_STRATEGY = ToNumberPolicy.LAZILY_PARSED_NUMBER;
 
   private static final TypeToken<?> NULL_KEY_SURROGATE = TypeToken.get(Object.class);
   private static final String JSON_NON_EXECUTABLE_PREFIX = ")]}'\n";
@@ -143,6 +149,7 @@ public final class Gson {
   final boolean prettyPrinting;
   final boolean lenient;
   final boolean serializeSpecialFloatingPointValues;
+  final boolean useJdkUnsafe;
   final String datePattern;
   final int dateStyle;
   final int timeStyle;
@@ -187,28 +194,30 @@ public final class Gson {
    * </ul>
    */
   public Gson() {
-    this(Excluder.DEFAULT, FieldNamingPolicy.IDENTITY,
+    this(Excluder.DEFAULT, DEFAULT_FIELD_NAMING_STRATEGY,
         Collections.<Type, InstanceCreator<?>>emptyMap(), DEFAULT_SERIALIZE_NULLS,
         DEFAULT_COMPLEX_MAP_KEYS, DEFAULT_JSON_NON_EXECUTABLE, DEFAULT_ESCAPE_HTML,
         DEFAULT_PRETTY_PRINT, DEFAULT_LENIENT, DEFAULT_SPECIALIZE_FLOAT_VALUES,
-        LongSerializationPolicy.DEFAULT, null, DateFormat.DEFAULT, DateFormat.DEFAULT,
+        DEFAULT_USE_JDK_UNSAFE,
+        LongSerializationPolicy.DEFAULT, DEFAULT_DATE_PATTERN, DateFormat.DEFAULT, DateFormat.DEFAULT,
         Collections.<TypeAdapterFactory>emptyList(), Collections.<TypeAdapterFactory>emptyList(),
-        Collections.<TypeAdapterFactory>emptyList(), ToNumberPolicy.DOUBLE, ToNumberPolicy.LAZILY_PARSED_NUMBER);
+        Collections.<TypeAdapterFactory>emptyList(), DEFAULT_OBJECT_TO_NUMBER_STRATEGY, DEFAULT_NUMBER_TO_NUMBER_STRATEGY);
   }
 
   Gson(Excluder excluder, FieldNamingStrategy fieldNamingStrategy,
       Map<Type, InstanceCreator<?>> instanceCreators, boolean serializeNulls,
       boolean complexMapKeySerialization, boolean generateNonExecutableGson, boolean htmlSafe,
       boolean prettyPrinting, boolean lenient, boolean serializeSpecialFloatingPointValues,
+      boolean useJdkUnsafe,
       LongSerializationPolicy longSerializationPolicy, String datePattern, int dateStyle,
       int timeStyle, List<TypeAdapterFactory> builderFactories,
       List<TypeAdapterFactory> builderHierarchyFactories,
       List<TypeAdapterFactory> factoriesToBeAdded,
-          ToNumberStrategy objectToNumberStrategy, ToNumberStrategy numberToNumberStrategy) {
+      ToNumberStrategy objectToNumberStrategy, ToNumberStrategy numberToNumberStrategy) {
     this.excluder = excluder;
     this.fieldNamingStrategy = fieldNamingStrategy;
     this.instanceCreators = instanceCreators;
-    this.constructorConstructor = new ConstructorConstructor(instanceCreators);
+    this.constructorConstructor = new ConstructorConstructor(instanceCreators, useJdkUnsafe);
     this.serializeNulls = serializeNulls;
     this.complexMapKeySerialization = complexMapKeySerialization;
     this.generateNonExecutableJson = generateNonExecutableGson;
@@ -216,6 +225,7 @@ public final class Gson {
     this.prettyPrinting = prettyPrinting;
     this.lenient = lenient;
     this.serializeSpecialFloatingPointValues = serializeSpecialFloatingPointValues;
+    this.useJdkUnsafe = useJdkUnsafe;
     this.longSerializationPolicy = longSerializationPolicy;
     this.datePattern = datePattern;
     this.dateStyle = dateStyle;
@@ -260,6 +270,8 @@ public final class Gson {
     factories.add(TypeAdapters.STRING_BUFFER_FACTORY);
     factories.add(TypeAdapters.newFactory(BigDecimal.class, TypeAdapters.BIG_DECIMAL));
     factories.add(TypeAdapters.newFactory(BigInteger.class, TypeAdapters.BIG_INTEGER));
+    // Add adapter for LazilyParsedNumber because user can obtain it from Gson and then try to serialize it again
+    factories.add(TypeAdapters.newFactory(LazilyParsedNumber.class, TypeAdapters.LAZILY_PARSED_NUMBER));
     factories.add(TypeAdapters.URL_FACTORY);
     factories.add(TypeAdapters.URI_FACTORY);
     factories.add(TypeAdapters.UUID_FACTORY);
@@ -555,7 +567,7 @@ public final class Gson {
    *  read or written.
    * @param skipPast The type adapter factory that needs to be skipped while searching for
    *   a matching type adapter. In most cases, you should just pass <i>this</i> (the type adapter
-   *   factory from where {@link #getDelegateAdapter} method is being invoked).
+   *   factory from where {@code getDelegateAdapter} method is being invoked).
    * @param type Type for which the delegate adapter is being searched for.
    *
    * @since 2.2

@@ -58,7 +58,7 @@ public class ReflectionHelper {
    */
   public static String tryMakeAccessible(AccessibleObject ao) {
     try {
-      makeAccessible(ao);  
+      makeAccessible(ao);
       return null;
     } catch (JsonIOException error) {
       return error.getMessage();

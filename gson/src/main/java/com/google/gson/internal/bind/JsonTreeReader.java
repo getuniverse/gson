@@ -102,7 +102,7 @@ public final class JsonTreeReader extends JsonReader {
 
   @Override public boolean hasNext() throws IOException {
     JsonToken token = peek();
-    return token != JsonToken.END_OBJECT && token != JsonToken.END_ARRAY;
+    return token != JsonToken.END_OBJECT && token != JsonToken.END_ARRAY && token != JsonToken.END_DOCUMENT;
   }
 
   @Override public JsonToken peek() throws IOException {
@@ -305,12 +305,19 @@ public final class JsonTreeReader extends JsonReader {
     stack[stackSize++] = newTop;
   }
 
-  @Override public String getPath() {
+  private String getPath(boolean usePreviousPath) {
     StringBuilder result = new StringBuilder().append('$');
     for (int i = 0; i < stackSize; i++) {
       if (stack[i] instanceof JsonArray) {
         if (++i < stackSize && stack[i] instanceof Iterator) {
-          result.append('[').append(pathIndices[i]).append(']');
+          int pathIndex = pathIndices[i];
+          // If index is last path element it points to next array element; have to decrement
+          // `- 1` covers case where iterator for next element is on stack
+          // `- 2` covers case where peek() already pushed next element onto stack
+          if (usePreviousPath && pathIndex > 0 && (i == stackSize - 1 || i == stackSize - 2)) {
+            pathIndex--;
+          }
+          result.append('[').append(pathIndex).append(']');
         }
       } else if (stack[i] instanceof JsonObject) {
         if (++i < stackSize && stack[i] instanceof Iterator) {
@@ -322,6 +329,14 @@ public final class JsonTreeReader extends JsonReader {
       }
     }
     return result.toString();
+  }
+
+  @Override public String getPreviousPath() {
+    return getPath(true);
+  }
+
+  @Override public String getPath() {
+    return getPath(false);
   }
 
   private String locationString() {
