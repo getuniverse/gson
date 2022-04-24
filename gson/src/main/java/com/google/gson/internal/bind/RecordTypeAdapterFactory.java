@@ -72,22 +72,23 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
                                                 final Gson context,
                                                 final JsonAdapter jsonAdapter,
                                                 final String name,
-                                                final Class<?> fieldClass,
                                                 final Type fieldType,
                                                 final MethodHandle getter) {
         TypeAdapter<?> typeAdapter = null;
 
+        final TypeToken<?> fieldToken = TypeToken.get(fieldType);
+
         if (jsonAdapter != null) {
             typeAdapter = jsonAdapterFactory.getTypeAdapter(constructorConstructor,
                                                             context,
-                                                            TypeToken.get(fieldType),
+                                                            fieldToken,
                                                             jsonAdapter);
         }
 
         final boolean wrap = typeAdapter == null;
 
         if (wrap) {
-            typeAdapter = context.getAdapter(fieldClass);
+            typeAdapter = context.getAdapter(fieldToken);
         }
 
         return new BoundComponent(index, name, getter, typeAdapter, wrap, context, fieldType);
@@ -99,7 +100,6 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
         for (int i = 0, ii = descriptor.names.length; i < ii; ++i) {
             final String[] fieldNames = descriptor.names[i];
             final JsonAdapter adapter = descriptor.adapters[i];
-            final Class<?> _class = descriptor.classes[i];
             final Type _type = descriptor.types[i];
             final MethodHandle getter = descriptor.getters[i];
 
@@ -109,7 +109,6 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
                                                                            context,
                                                                            adapter,
                                                                            name,
-                                                                           _class,
                                                                            _type,
                                                                            // only serialize the default name
                                                                            j == 0 ? getter : null

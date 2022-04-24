@@ -189,7 +189,6 @@ public final class Records {
 
         public final String[][] names;
         public final Type[] types;
-        public final Class<?>[] classes;
         public final JsonAdapter[] adapters;
         public final MethodHandle[] getters;
         public final MethodHandle constructor;
@@ -200,7 +199,7 @@ public final class Records {
 
             final String[][] names = this.names = new String[components.length][];
             final Type[] types = this.types = new Type[components.length];
-            final Class<?>[] classes = this.classes = new Class[components.length];
+            final Class<?>[] classes = new Class[components.length];
             final MethodHandle[] getters = this.getters = new MethodHandle[components.length];
             final JsonAdapter[] adapters = this.adapters = new JsonAdapter[components.length];
 
