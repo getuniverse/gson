@@ -19,7 +19,7 @@ package com.google.gson.internal.bind;
 import java.io.IOException;
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Type;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.Map;
 
 import com.google.gson.FieldNamingStrategy;
@@ -46,9 +46,9 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
     private final FieldNamingStrategy fieldNamingPolicy;
     private final JsonAdapterAnnotationTypeAdapterFactory jsonAdapterFactory;
 
-    public RecordTypeAdapterFactory(ConstructorConstructor constructorConstructor,
-                                    FieldNamingStrategy fieldNamingPolicy,
-                                    JsonAdapterAnnotationTypeAdapterFactory jsonAdapterFactory) {
+    public RecordTypeAdapterFactory(final ConstructorConstructor constructorConstructor,
+                                    final FieldNamingStrategy fieldNamingPolicy,
+                                    final JsonAdapterAnnotationTypeAdapterFactory jsonAdapterFactory) {
         this.constructorConstructor = constructorConstructor;
         this.fieldNamingPolicy = fieldNamingPolicy;
         this.jsonAdapterFactory = jsonAdapterFactory;
@@ -56,7 +56,7 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
 
     @Override
     @SuppressWarnings("CodeBlock2Expr")
-    public <T> TypeAdapter<T> create(Gson gson, final TypeToken<T> type) {
+    public <T> TypeAdapter<T> create(final Gson gson, final TypeToken<T> type) {
         Class<? super T> raw = type.getRawType();
 
         if (!Records.isRecord(raw)) {
@@ -94,10 +94,13 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
         return new BoundComponent(index, name, getter, typeAdapter, wrap, context, fieldType);
     }
 
-    private Map<String, BoundComponent> getComponents(Gson context, TypeToken<?> type, Descriptor descriptor) {
-        final Map<String, BoundComponent> result = new LinkedHashMap<>();
+    private Map<String, BoundComponent> getComponents(final Gson context,
+                                                      final TypeToken<?> type,
+                                                      final Descriptor descriptor) {
+        final int fieldCount = descriptor.names.length;
+        final Map<String, BoundComponent> result = new HashMap<>(fieldCount * 2);
 
-        for (int i = 0, ii = descriptor.names.length; i < ii; ++i) {
+        for (int i = 0; i < fieldCount; ++i) {
             final String[] fieldNames = descriptor.names[i];
             final JsonAdapter adapter = descriptor.adapters[i];
             final Type _type = descriptor.types[i];
@@ -111,14 +114,10 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
                                                                            name,
                                                                            _type,
                                                                            // only serialize the default name
-                                                                           j == 0 ? getter : null
-                );
+                                                                           j == 0 ? getter : null);
 
-                final BoundComponent previous = result.put(name, boundComponent);
-
-                if (previous != null) {
-                    throw new IllegalArgumentException(type.getType()
-                                                       + " declares multiple JSON fields named " + previous.name);
+                if (result.put(name, boundComponent) != null) {
+                    throw new IllegalArgumentException(type.getType() + " declares multiple JSON fields named " + name);
                 }
             }
         }
@@ -136,13 +135,13 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
         private final TypeAdapter<?> adapterIn;
         private final TypeAdapter adapterOut;
 
-        BoundComponent(int index,
-                       String name,
-                       MethodHandle getter,
-                       TypeAdapter<?> typeAdapter,
-                       boolean wrap,
-                       Gson context,
-                       Type fieldType) {
+        BoundComponent(final int index,
+                       final String name,
+                       final MethodHandle getter,
+                       final TypeAdapter<?> typeAdapter,
+                       final boolean wrap,
+                       final Gson context,
+                       final Type fieldType) {
             this.index = index;
             this.name = name;
             this.getter = getter;
@@ -151,18 +150,19 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
                               ? new TypeAdapterRuntimeTypeWrapper(context, typeAdapter, fieldType)
                               : typeAdapter;
         }
+
         @SuppressWarnings("unchecked")
-        void write(JsonWriter writer, Object object) throws IOException {
+        void write(final JsonWriter writer, final Object object) throws IOException {
             try {
                 adapterOut.write(writer, getter.invoke(object));
-            } catch (final Error e) {
-                throw e;
-            } catch (final Throwable e) {
-                throw new InvalidStateException(e);
+            } catch (final Error error) {
+                throw error;
+            } catch (final Throwable error) {
+                throw new InvalidStateException(error);
             }
         }
 
-        void read(JsonReader reader, Object[] components) throws Exception {
+        void read(final JsonReader reader, final Object[] components) throws Exception {
             components[index] = adapterIn.read(reader);
         }
     }
@@ -172,21 +172,20 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
         private final MethodHandle constructor;
         private final Map<String, BoundComponent> components;
 
-        Adapter(MethodHandle constructor, Map<String, BoundComponent> components) {
+        Adapter(final MethodHandle constructor, final Map<String, BoundComponent> components) {
             this.constructor = constructor;
             this.components = components;
         }
 
         @Override
         @SuppressWarnings("unchecked")
-        public T read(JsonReader in) throws IOException {
+        public T read(final JsonReader in) throws IOException {
             if (in.peek() == JsonToken.NULL) {
                 in.nextNull();
                 return null;
             }
 
-            final Map<String, BoundComponent> components = this.components;
-            final Object[] _components = new Object[components.size()];
+            final Object[] fields = new Object[components.size()];
 
             try {
                 in.beginObject();
@@ -197,36 +196,38 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
                     if (field == null) {
                         in.skipValue();
                     } else {
-                        field.read(in, _components);
+                        field.read(in, fields);
                     }
                 }
 
                 in.endObject();
 
-                return (T) constructor.invokeWithArguments(_components);
-            } catch (IllegalStateException e) {
-                throw new JsonSyntaxException(e);
-            } catch (Error | RuntimeException e) {
-                throw e;
-            } catch (Throwable e) {
-                throw new InvalidStateException(e);
+                return (T) constructor.invokeWithArguments(fields);
+            } catch (final IllegalStateException error) {
+                throw new JsonSyntaxException(error);
+            } catch (final Error | RuntimeException error) {
+                throw error;
+            } catch (final Throwable error) {
+                throw new InvalidStateException(error);
             }
         }
 
         @Override
-        public void write(JsonWriter out, T value) throws IOException {
+        public void write(final JsonWriter out, final T value) throws IOException {
             if (value == null) {
                 out.nullValue();
                 return;
             }
 
             out.beginObject();
+
             for (BoundComponent component : components.values()) {
                 if (component.getter != null) {
                     out.name(component.name);
                     component.write(out, value);
                 }
             }
+
             out.endObject();
         }
     }
