@@ -46,6 +46,7 @@ import com.google.gson.internal.bind.ArrayTypeAdapter;
 import com.google.gson.internal.bind.CollectionTypeAdapterFactory;
 import com.google.gson.internal.bind.DateTypeAdapter;
 import com.google.gson.internal.bind.JsonAdapterAnnotationTypeAdapterFactory;
+import com.google.gson.internal.bind.JsonSnippetTypeAdapter;
 import com.google.gson.internal.bind.JsonTreeReader;
 import com.google.gson.internal.bind.JsonTreeWriter;
 import com.google.gson.internal.bind.MapTypeAdapterFactory;
@@ -298,6 +299,7 @@ public final class Gson {
     factories.add(jsonAdapterFactory);
     factories.add(TypeAdapters.ENUM_FACTORY);
     factories.add(new RecordTypeAdapterFactory(constructorConstructor, fieldNamingStrategy, jsonAdapterFactory));
+    factories.add(TypeAdapters.newFactory(TypeToken.get(JsonSnippet.class), new JsonSnippetTypeAdapter()));
     factories.add(new ReflectiveTypeAdapterFactory(
         constructorConstructor, fieldNamingStrategy, excluder, jsonAdapterFactory));
 
