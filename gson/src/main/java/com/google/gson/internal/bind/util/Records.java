@@ -138,18 +138,26 @@ public final class Records {
 
     private static final Map<Type, Descriptor> descriptorCache = new ConcurrentHashMap<>(128, 0.75f, 32);
 
-    public static <T> T components(final Type type, final Class _class, final FieldNamingStrategy fieldNamingPolicy, final Function<Descriptor, T> consumer) {
+    public static <T> T components(final Type type, final Class<?> _class, final FieldNamingStrategy fieldNamingPolicy, final Function<Descriptor, T> consumer) {
         return consumer.apply(descriptorCache.computeIfAbsent(type, ignore -> new Descriptor(type, _class, fieldNamingPolicy)));
     }
 
     private static Class<?> boxedType(final Class<?> type) {
         if (type.isPrimitive()) {
-            if (type == int.class) {
+            if (type == byte.class) {
+                return Byte.class;
+            } else if (type == char.class) {
+                return Character.class;
+            } else if (type == short.class) {
+                return Short.class;
+            } else if (type == int.class) {
                 return Integer.class;
             } else if (type == boolean.class) {
                 return Boolean.class;
             } else if (type == long.class) {
                 return Long.class;
+            } else if (type == float.class) {
+                return Float.class;
             } else if (type == double.class) {
                 return Double.class;
             } else {
@@ -195,11 +203,11 @@ public final class Records {
 
         Descriptor(final Type targetType, final Class<?> recordClass, final FieldNamingStrategy fieldNamingPolicy) {
             final Object[] components = GET_RECORD_COMPONENTS.apply(recordClass);
-            final Class<?>[] boxed = new Class[components.length];
+            final Class<?>[] boxed = new Class<?>[components.length];
 
             final String[][] names = this.names = new String[components.length][];
             final Type[] types = this.types = new Type[components.length];
-            final Class<?>[] classes = new Class[components.length];
+            final Class<?>[] classes = new Class<?>[components.length];
             final MethodHandle[] getters = this.getters = new MethodHandle[components.length];
             final JsonAdapter[] adapters = this.adapters = new JsonAdapter[components.length];
 

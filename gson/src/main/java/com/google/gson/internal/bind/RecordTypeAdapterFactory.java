@@ -64,7 +64,7 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
         }
 
         return Records.components(type.getType(), raw, fieldNamingPolicy, descriptor -> {
-            return new Adapter<>(descriptor.constructor, getComponents(gson, type, descriptor));
+            return new Adapter<>(descriptor.names.length, descriptor.constructor, getComponents(gson, type, descriptor));
         });
     }
 
@@ -169,11 +169,13 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
 
     public static final class Adapter<T> extends TypeAdapter<T> {
 
+        private final int fields;
         private final MethodHandle constructor;
         private final Map<String, BoundComponent> components;
 
-        Adapter(final MethodHandle constructor, final Map<String, BoundComponent> components) {
+        Adapter(final int fields, final MethodHandle constructor, final Map<String, BoundComponent> components) {
             this.constructor = constructor;
+            this.fields = fields;
             this.components = components;
         }
 
@@ -185,7 +187,7 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
                 return null;
             }
 
-            final Object[] fields = new Object[components.size()];
+            final Object[] arguments = new Object[fields];
 
             try {
                 in.beginObject();
@@ -196,13 +198,13 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
                     if (field == null) {
                         in.skipValue();
                     } else {
-                        field.read(in, fields);
+                        field.read(in, arguments);
                     }
                 }
 
                 in.endObject();
 
-                return (T) constructor.invokeWithArguments(fields);
+                return (T) constructor.invokeWithArguments(arguments);
             } catch (final IllegalStateException error) {
                 throw new JsonSyntaxException(error);
             } catch (final Error | RuntimeException error) {
