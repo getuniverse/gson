@@ -1,6 +1,13 @@
 Change Log
 ==========
 
+## Version 2.9.1-happeo-1
+TODO  [GitHub Diff](https://github.com/google/gson/compare/gson-parent-2.9.1...gson-parent-2.9.1-happeo-1)
+
+* `JsonSnippet` to support emitting pre-encoded JSON and validating input JSON
+  without object mapping.
+* Improved record support.
+
 ## Version 2.8.9-happeo-1
 _2021-11-21_  [GitHub Diff](https://github.com/google/gson/compare/gson-parent-2.8.9...gson-parent-2.8.9-happeo-1)
 * [Fix race for concurrent serialization of recursive type](https://github.com/google/gson/pull/767/commits/ebcdd9e30109497e9bf3030f41c19f968eaa2212).
