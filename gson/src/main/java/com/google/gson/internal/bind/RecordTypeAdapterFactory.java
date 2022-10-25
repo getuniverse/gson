@@ -16,23 +16,31 @@
 
 package com.google.gson.internal.bind;
 
+import static com.google.gson.ReflectionAccessFilter.FilterResult.BLOCK_ALL;
+import static com.google.gson.ReflectionAccessFilter.FilterResult.BLOCK_INACCESSIBLE;
+import static com.google.gson.internal.ReflectionAccessFilterHelper.getFilterResult;
+
 import java.io.IOException;
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.google.gson.FieldNamingStrategy;
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.ReflectionAccessFilter;
+import com.google.gson.ReflectionAccessFilter.FilterResult;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.internal.ConstructorConstructor;
 import com.google.gson.internal.Excluder;
 import com.google.gson.internal.InvalidStateException;
+import com.google.gson.internal.ReflectionAccessFilterHelper;
 import com.google.gson.internal.bind.util.Records;
 import com.google.gson.internal.bind.util.Records.Descriptor;
 import com.google.gson.reflect.TypeToken;
@@ -49,15 +57,18 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
     private final FieldNamingStrategy fieldNamingPolicy;
     private final Excluder excluder;
     private final JsonAdapterAnnotationTypeAdapterFactory jsonAdapterFactory;
+    private final List<ReflectionAccessFilter> reflectionFilters;
 
     public RecordTypeAdapterFactory(final ConstructorConstructor constructorConstructor,
                                     final FieldNamingStrategy fieldNamingPolicy,
                                     final Excluder excluder,
-                                    final JsonAdapterAnnotationTypeAdapterFactory jsonAdapterFactory) {
+                                    final JsonAdapterAnnotationTypeAdapterFactory jsonAdapterFactory,
+                                    final List<ReflectionAccessFilter> reflectionFilters) {
         this.constructorConstructor = constructorConstructor;
         this.fieldNamingPolicy = fieldNamingPolicy;
         this.excluder = excluder;
         this.jsonAdapterFactory = jsonAdapterFactory;
+        this.reflectionFilters = reflectionFilters;
     }
 
     @Override
@@ -67,6 +78,14 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
 
         if (!Records.isRecord(raw)) {
             return null; // not a record
+        }
+
+        final FilterResult filterResult = getFilterResult(reflectionFilters, raw);
+
+        if (filterResult == BLOCK_ALL) {
+            throw new JsonIOException(
+                    "ReflectionAccessFilter does not permit using reflection for " + raw
+                    + ". Register a TypeAdapter for this type or adjust the access filter.");
         }
 
         return Records.components(type.getType(), raw, fieldNamingPolicy, excluder, descriptor -> {

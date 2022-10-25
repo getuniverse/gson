@@ -375,7 +375,6 @@ public final class Java17RecordTest {
   }
 
   @Test
-  @Ignore("TODO")
   public void testClassReflectionFilter() {
     record Allowed(int a) {}
     record Blocked(int b) {}
