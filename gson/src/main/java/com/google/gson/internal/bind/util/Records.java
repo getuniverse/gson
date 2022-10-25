@@ -24,8 +24,8 @@ import com.google.gson.JsonIOException;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.internal.$Gson$Types;
+import com.google.gson.internal.Excluder;
 import com.google.gson.internal.InvalidStateException;
-import com.google.gson.internal.bind.ReflectiveTypeAdapterFactory;
 import com.google.gson.internal.reflect.ReflectionHelper;
 
 /**
@@ -140,8 +140,13 @@ public final class Records {
 
     private static final Map<Type, Descriptor> descriptorCache = new ConcurrentHashMap<>(128, 0.75f, 32);
 
-    public static <T> T components(final Type type, final Class<?> _class, final FieldNamingStrategy fieldNamingPolicy, final Function<Descriptor, T> consumer) {
-        return consumer.apply(descriptorCache.computeIfAbsent(type, ignore -> new Descriptor(type, _class, fieldNamingPolicy)));
+    public static <T> T components(final Type type,
+                                   final Class<?> _class,
+                                   final FieldNamingStrategy fieldNamingPolicy,
+                                   final Excluder excluder,
+                                   final Function<Descriptor, T> consumer) {
+        return consumer.apply(descriptorCache.computeIfAbsent(type, ignore ->
+                new Descriptor(type, _class, fieldNamingPolicy, excluder)));
     }
 
     private static Class<?> boxedType(final Class<?> type) {
@@ -170,7 +175,6 @@ public final class Records {
         }
     }
 
-    /** Copied from {@link ReflectiveTypeAdapterFactory#getFieldNames(Field)} */
     private static String[] getFieldNames(final FieldNamingStrategy fieldNamingPolicy,
                                           final AnnotatedElement element,
                                           final Field field) {
@@ -211,8 +215,16 @@ public final class Records {
         public final MethodHandle constructor;
         public final String className;
         public final String constructorName;
+        public final boolean[] serialized;
+        public final boolean[] deserialized;
 
-        Descriptor(final Type targetType, final Class<?> recordClass, final FieldNamingStrategy fieldNamingPolicy) {
+        private final Excluder excluder;
+
+        Descriptor(final Type targetType,
+                   final Class<?> recordClass,
+                   final FieldNamingStrategy fieldNamingPolicy,
+                   final Excluder excluder) {
+            this.excluder = excluder;
             final Object[] components = GET_RECORD_COMPONENTS.apply(recordClass);
             final Class<?>[] boxed = new Class<?>[components.length];
 
@@ -221,6 +233,8 @@ public final class Records {
             final Class<?>[] classes = new Class<?>[components.length];
             final MethodHandle[] getters = this.getters = new MethodHandle[components.length];
             final JsonAdapter[] adapters = this.adapters = new JsonAdapter[components.length];
+            final boolean[] serialized = this.serialized = new boolean[components.length];
+            final boolean[] deserialized = this.deserialized = new boolean[components.length];
 
             for (int i = 0, ii = components.length; i < ii; ++i) {
                 final Object component = components[i];
@@ -248,6 +262,8 @@ public final class Records {
                 boxed[i] = boxedType(_class);
                 names[i] = getFieldNames(fieldNamingPolicy, getter, field);
                 adapters[i] = field.getAnnotation(JsonAdapter.class);
+                serialized[i] = includeField(field, true);
+                deserialized[i] = includeField(field, false);
             }
 
             try {
@@ -265,6 +281,10 @@ public final class Records {
             } catch (final Throwable error) {
                 throw new IllegalStateException(error);
             }
+        }
+
+        private boolean includeField(Field field, boolean serialize) {
+            return !excluder.excludeClass(field.getType(), serialize) && !excluder.excludeField(field, serialize);
         }
     }
 }

@@ -325,7 +325,6 @@ public final class Java17RecordTest {
   }
 
   @Test
-  @Ignore("TODO")
   public void testExposeAnnotation() {
     record RecordWithExpose(
         @Expose int a,
@@ -338,7 +337,6 @@ public final class Java17RecordTest {
   }
 
   @Test
-  @Ignore("TODO")
   public void testFieldExclusionStrategy() {
     record LocalRecord(int a, int b, double c) {}
 
