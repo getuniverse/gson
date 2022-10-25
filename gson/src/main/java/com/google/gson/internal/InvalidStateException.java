@@ -3,6 +3,7 @@ package com.google.gson.internal;
 /**
  * Internal API.
  */
+@SuppressWarnings("serial")
 public final class InvalidStateException extends RuntimeException {
 
     public InvalidStateException() {

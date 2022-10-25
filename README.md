@@ -21,7 +21,7 @@ Maven:
 <dependency>
   <groupId>com.google.code.gson</groupId>
   <artifactId>gson</artifactId>
-  <version>2.9.0-happeo-1</version>
+  <version>2.10-happeo-1</version>
 </dependency>
 ```
 
@@ -47,7 +47,6 @@ When this module is present, Gson can use the `Unsafe` class to create instances
 However, care should be taken when relying on this. `Unsafe` is not available in all environments and its usage has some pitfalls,
 see [`GsonBuilder.disableJdkUnsafe()`](https://javadoc.io/doc/com.google.code.gson/gson/latest/com.google.gson/com/google/gson/GsonBuilder.html#disableJdkUnsafe()).
 
->>>>>>> gson-parent-2.9.0
 ### Documentation
   * [API Javadoc](https://www.javadoc.io/doc/com.google.code.gson/gson): Documentation for the current release
   * [User guide](https://github.com/google/gson/blob/master/UserGuide.md): This guide contains examples on how to use Gson in your code.

@@ -19,11 +19,13 @@ package com.google.gson.internal.bind;
 import java.io.IOException;
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.google.gson.FieldNamingStrategy;
 import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
@@ -64,13 +66,17 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
         }
 
         return Records.components(type.getType(), raw, fieldNamingPolicy, descriptor -> {
-            return new Adapter<>(descriptor.names.length, descriptor.constructor, getComponents(gson, type, descriptor));
+            return new Adapter<>(descriptor.names.length,
+                                 descriptor.constructor,
+                                 getComponents(gson, type, descriptor),
+                                 descriptor.constructorName);
         });
     }
 
     private BoundComponent createBoundComponent(final int index,
                                                 final Gson context,
-                                                final JsonAdapter jsonAdapter,
+                                                final JsonAdapter adapter,
+                                                final String className,
                                                 final String name,
                                                 final Type fieldType,
                                                 final MethodHandle getter) {
@@ -78,11 +84,8 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
 
         final TypeToken<?> fieldToken = TypeToken.get(fieldType);
 
-        if (jsonAdapter != null) {
-            typeAdapter = jsonAdapterFactory.getTypeAdapter(constructorConstructor,
-                                                            context,
-                                                            fieldToken,
-                                                            jsonAdapter);
+        if (adapter != null) {
+            typeAdapter = jsonAdapterFactory.getTypeAdapter(constructorConstructor, context, fieldToken, adapter);
         }
 
         final boolean wrap = typeAdapter == null;
@@ -91,7 +94,7 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
             typeAdapter = context.getAdapter(fieldToken);
         }
 
-        return new BoundComponent(index, name, getter, typeAdapter, wrap, context, fieldType);
+        return new BoundComponent(index, className, name, getter, typeAdapter, wrap, context, fieldType);
     }
 
     private Map<String, BoundComponent> getComponents(final Gson context,
@@ -111,6 +114,7 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
                 final BoundComponent boundComponent = createBoundComponent(i,
                                                                            context,
                                                                            adapter,
+                                                                           descriptor.className,
                                                                            name,
                                                                            _type,
                                                                            // only serialize the default name
@@ -130,12 +134,14 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
 
         final String name;
         final MethodHandle getter;
+        final String className;
 
         private final int index;
         private final TypeAdapter<?> adapterIn;
         private final TypeAdapter adapterOut;
 
         BoundComponent(final int index,
+                       final String className,
                        final String name,
                        final MethodHandle getter,
                        final TypeAdapter<?> typeAdapter,
@@ -145,6 +151,7 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
             this.index = index;
             this.name = name;
             this.getter = getter;
+            this.className = className;
             this.adapterIn = typeAdapter;
             this.adapterOut = wrap
                               ? new TypeAdapterRuntimeTypeWrapper(context, typeAdapter, fieldType)
@@ -158,7 +165,7 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
             } catch (final Error error) {
                 throw error;
             } catch (final Throwable error) {
-                throw new InvalidStateException(error);
+                throw new JsonIOException("Accessor method '" + className + "#" + name + "()' threw exception", error);
             }
         }
 
@@ -172,11 +179,16 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
         private final int fields;
         private final MethodHandle constructor;
         private final Map<String, BoundComponent> components;
+        private final String constructorName;
 
-        Adapter(final int fields, final MethodHandle constructor, final Map<String, BoundComponent> components) {
+        Adapter(final int fields,
+                final MethodHandle constructor,
+                final Map<String, BoundComponent> components,
+                final String constructorName) {
             this.constructor = constructor;
             this.fields = fields;
             this.components = components;
+            this.constructorName = constructorName;
         }
 
         @Override
@@ -203,14 +215,20 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
                 }
 
                 in.endObject();
-
-                return (T) constructor.invokeWithArguments(arguments);
             } catch (final IllegalStateException error) {
                 throw new JsonSyntaxException(error);
             } catch (final Error | RuntimeException error) {
                 throw error;
             } catch (final Throwable error) {
                 throw new InvalidStateException(error);
+            }
+
+            try {
+                return (T) constructor.invokeWithArguments(arguments);
+            } catch (Error e) {
+                throw e;
+            } catch (Throwable e) {
+                throw new RuntimeException("Failed to invoke constructor '" + constructorName + "' with args " + Arrays.toString(arguments), e);
             }
         }
 

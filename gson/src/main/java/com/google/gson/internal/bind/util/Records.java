@@ -20,11 +20,13 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import com.google.gson.FieldNamingStrategy;
+import com.google.gson.JsonIOException;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.internal.$Gson$Types;
 import com.google.gson.internal.InvalidStateException;
 import com.google.gson.internal.bind.ReflectiveTypeAdapterFactory;
+import com.google.gson.internal.reflect.ReflectionHelper;
 
 /**
  * Java record related utilities.
@@ -176,6 +178,13 @@ public final class Records {
 
         if (annotation == null) {
             return new String[] { fieldNamingPolicy.translateName(field) };
+        } else if (!field.isAnnotationPresent(SerializedName.class)) {
+            // @SerializedName can be placed on accessor method, but it is not supported there
+            // If field and method have annotation it is not easily possible to determine if accessor method
+            // is implicit and has inherited annotation, or if it is explicitly declared with custom annotation
+            throw new JsonIOException("@" + SerializedName.class.getSimpleName() + " on method" +
+                                      " '" + field.getDeclaringClass().getName() + "#" + field.getName() +
+                                      "()' is not supported");
         }
 
         final String serializedName = annotation.value();
@@ -200,6 +209,8 @@ public final class Records {
         public final JsonAdapter[] adapters;
         public final MethodHandle[] getters;
         public final MethodHandle constructor;
+        public final String className;
+        public final String constructorName;
 
         Descriptor(final Type targetType, final Class<?> recordClass, final FieldNamingStrategy fieldNamingPolicy) {
             final Object[] components = GET_RECORD_COMPONENTS.apply(recordClass);
@@ -236,7 +247,7 @@ public final class Records {
                 types[i] = $Gson$Types.resolve(targetType, recordClass, _type);
                 boxed[i] = boxedType(_class);
                 names[i] = getFieldNames(fieldNamingPolicy, getter, field);
-                adapters[i] = getter.getAnnotation(JsonAdapter.class);
+                adapters[i] = field.getAnnotation(JsonAdapter.class);
             }
 
             try {
@@ -247,6 +258,8 @@ public final class Records {
                 }
 
                 this.constructor = explicitCastArguments(METHODS.unreflectConstructor(_constructor), methodType(recordClass, boxed));
+                this.className = recordClass.getName();
+                this.constructorName = ReflectionHelper.constructorToString(_constructor);
             } catch (final RuntimeException | Error error) {
                 throw error;
             } catch (final Throwable error) {
