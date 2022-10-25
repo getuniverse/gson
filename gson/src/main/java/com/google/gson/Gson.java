@@ -565,6 +565,9 @@ public final class Gson {
         }
       }
       throw new IllegalArgumentException("GSON (" + GsonBuildConfig.VERSION + ") cannot handle " + type);
+    } catch (Exception e) {
+      threadCalls.remove(type);
+      throw e;
     } finally {
       if (firstThreadLocal) {
         // move thread local type adapters to cache on instance

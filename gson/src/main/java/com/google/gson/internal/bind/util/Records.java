@@ -25,7 +25,6 @@ import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.internal.$Gson$Types;
 import com.google.gson.internal.Excluder;
-import com.google.gson.internal.InvalidStateException;
 import com.google.gson.internal.reflect.ReflectionHelper;
 
 /**
@@ -144,9 +143,10 @@ public final class Records {
                                    final Class<?> _class,
                                    final FieldNamingStrategy fieldNamingPolicy,
                                    final Excluder excluder,
+                                   final boolean blockInaccessible,
                                    final Function<Descriptor, T> consumer) {
         return consumer.apply(descriptorCache.computeIfAbsent(type, ignore ->
-                new Descriptor(type, _class, fieldNamingPolicy, excluder)));
+                new Descriptor(type, _class, fieldNamingPolicy, excluder, blockInaccessible)));
     }
 
     private static Class<?> boxedType(final Class<?> type) {
@@ -223,8 +223,10 @@ public final class Records {
         Descriptor(final Type targetType,
                    final Class<?> recordClass,
                    final FieldNamingStrategy fieldNamingPolicy,
-                   final Excluder excluder) {
+                   final Excluder excluder,
+                   final boolean blockInaccessible) {
             this.excluder = excluder;
+
             final Object[] components = GET_RECORD_COMPONENTS.apply(recordClass);
             final Class<?>[] boxed = new Class<?>[components.length];
 
@@ -236,16 +238,22 @@ public final class Records {
             final boolean[] serialized = this.serialized = new boolean[components.length];
             final boolean[] deserialized = this.deserialized = new boolean[components.length];
 
+            IllegalAccessException inaccessible = null;
+
             for (int i = 0, ii = components.length; i < ii; ++i) {
                 final Object component = components[i];
                 final Method getter = GET_ACCESSOR.apply(component);
 
-                getter.setAccessible(true);
+                if (!blockInaccessible) {
+                    getter.setAccessible(true);
+                }
 
                 try {
                     getters[i] = METHODS.unreflect(getter);
-                } catch (final IllegalAccessException e) {
-                    throw new InvalidStateException(e);
+                } catch (final IllegalAccessException error) {
+                    if (inaccessible == null) {
+                        inaccessible = error;
+                    }
                 }
 
                 final Class<?> _class = classes[i] = GET_TYPE.apply(component);
@@ -269,11 +277,23 @@ public final class Records {
             try {
                 final Constructor<?> _constructor = recordClass.getDeclaredConstructor(classes);
 
-                if (!Modifier.isPublic(_constructor.getModifiers())) {
+                if (!blockInaccessible && !Modifier.isPublic(_constructor.getModifiers())) {
                     _constructor.setAccessible(true);
                 }
 
-                this.constructor = explicitCastArguments(METHODS.unreflectConstructor(_constructor), methodType(recordClass, boxed));
+                try {
+                    if (inaccessible != null) {
+                        throw inaccessible;
+                    }
+
+                    this.constructor = explicitCastArguments(METHODS.unreflectConstructor(_constructor), methodType(recordClass, boxed));
+                } catch (final IllegalAccessException error) {
+                    throw new JsonIOException(ReflectionHelper.getAccessibleObjectDescription(_constructor, true) +
+                                              " is not accessible and ReflectionAccessFilter does not permit making it accessible." +
+                                              " Register a TypeAdapter for the declaring type, adjust the access filter or increase" +
+                                              " the visibility of the element and its declaring type.", error);
+                }
+
                 this.className = recordClass.getName();
                 this.constructorName = ReflectionHelper.constructorToString(_constructor);
             } catch (final RuntimeException | Error error) {

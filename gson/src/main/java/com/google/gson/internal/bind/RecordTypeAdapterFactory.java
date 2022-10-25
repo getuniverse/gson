@@ -40,7 +40,6 @@ import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.internal.ConstructorConstructor;
 import com.google.gson.internal.Excluder;
 import com.google.gson.internal.InvalidStateException;
-import com.google.gson.internal.ReflectionAccessFilterHelper;
 import com.google.gson.internal.bind.util.Records;
 import com.google.gson.internal.bind.util.Records.Descriptor;
 import com.google.gson.reflect.TypeToken;
@@ -83,12 +82,13 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
         final FilterResult filterResult = getFilterResult(reflectionFilters, raw);
 
         if (filterResult == BLOCK_ALL) {
-            throw new JsonIOException(
-                    "ReflectionAccessFilter does not permit using reflection for " + raw
-                    + ". Register a TypeAdapter for this type or adjust the access filter.");
+            throw new JsonIOException("ReflectionAccessFilter does not permit using reflection for " + raw +
+                                      ". Register a TypeAdapter for this type or adjust the access filter.");
         }
 
-        return Records.components(type.getType(), raw, fieldNamingPolicy, excluder, descriptor -> {
+        final boolean blockInaccessible = filterResult == BLOCK_INACCESSIBLE;
+
+        return Records.components(type.getType(), raw, fieldNamingPolicy, excluder, blockInaccessible, descriptor -> {
             return new Adapter<>(descriptor.names.length,
                                  descriptor.constructor,
                                  getComponents(gson, type, descriptor),

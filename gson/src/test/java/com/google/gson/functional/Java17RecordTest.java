@@ -393,7 +393,6 @@ public final class Java17RecordTest {
   }
 
   @Test
-  @Ignore("TODO")
   public void testReflectionFilterBlockInaccessible() {
     Gson gson = new GsonBuilder()
         .addReflectionAccessFilter(c -> FilterResult.BLOCK_INACCESSIBLE)
