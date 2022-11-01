@@ -8,11 +8,11 @@ There are a few open-source projects that can convert Java objects to JSON. Howe
 **NOTE**: this is a _fork_ of the official Gson code that fixes issues we at Happeo find important.
 
 ### Goals
-  * Provide simple `toJson()` and `fromJson()` methods to convert Java objects to JSON and vice-versa
-  * Allow pre-existing unmodifiable objects to be converted to and from JSON
-  * Extensive support of Java Generics
-  * Allow custom representations for objects
-  * Support arbitrarily complex objects (with deep inheritance hierarchies and extensive use of generic types)
+* Provide simple `toJson()` and `fromJson()` methods to convert Java objects to JSON and vice-versa
+* Allow pre-existing unmodifiable objects to be converted to and from JSON
+* Extensive support of Java Generics
+* Allow custom representations for objects
+* Support arbitrarily complex objects (with deep inheritance hierarchies and extensive use of generic types)
 
 ### Download
 
@@ -40,25 +40,25 @@ These are the optional Java Platform Module System (JPMS) JDK modules which Gson
 This only applies when running Java 9 or newer.
 
 - `java.sql` (optional since Gson 2.8.9)  
-When this module is present, Gson provides default adapters for some SQL date and time classes.
+  When this module is present, Gson provides default adapters for some SQL date and time classes.
 
 - `jdk.unsupported`, respectively class `sun.misc.Unsafe` (optional)  
-When this module is present, Gson can use the `Unsafe` class to create instances of classes without no-args constructor.
-However, care should be taken when relying on this. `Unsafe` is not available in all environments and its usage has some pitfalls,
-see [`GsonBuilder.disableJdkUnsafe()`](https://javadoc.io/doc/com.google.code.gson/gson/latest/com.google.gson/com/google/gson/GsonBuilder.html#disableJdkUnsafe()).
+  When this module is present, Gson can use the `Unsafe` class to create instances of classes without no-args constructor.
+  However, care should be taken when relying on this. `Unsafe` is not available in all environments and its usage has some pitfalls,
+  see [`GsonBuilder.disableJdkUnsafe()`](https://javadoc.io/doc/com.google.code.gson/gson/latest/com.google.gson/com/google/gson/GsonBuilder.html#disableJdkUnsafe()).
 
 ### Documentation
-  * [API Javadoc](https://www.javadoc.io/doc/com.google.code.gson/gson): Documentation for the current release
-  * [User guide](https://github.com/google/gson/blob/master/UserGuide.md): This guide contains examples on how to use Gson in your code.
-  * [Change log](https://github.com/google/gson/blob/master/CHANGELOG.md): Changes in the recent versions
-  * [Design document](https://github.com/google/gson/blob/master/GsonDesignDocument.md): This document discusses issues we faced while designing Gson. It also includes a comparison of Gson with other Java libraries that can be used for Json conversion
+* [API Javadoc](https://www.javadoc.io/doc/com.google.code.gson/gson): Documentation for the current release
+* [User guide](https://github.com/google/gson/blob/master/UserGuide.md): This guide contains examples on how to use Gson in your code.
+* [Change log](https://github.com/google/gson/blob/master/CHANGELOG.md): Changes in the recent versions
+* [Design document](https://github.com/google/gson/blob/master/GsonDesignDocument.md): This document discusses issues we faced while designing Gson. It also includes a comparison of Gson with other Java libraries that can be used for Json conversion
 
 Please use the ['gson' tag on StackOverflow](https://stackoverflow.com/questions/tagged/gson) or the [google-gson Google group](https://groups.google.com/group/google-gson) to discuss Gson or to post questions.
 
 ### Related Content Created by Third Parties
-  * [Gson Tutorial](https://www.studytrails.com/java/json/java-google-json-introduction/) by `StudyTrails`
-  * [Gson Tutorial Series](https://futurestud.io/tutorials/gson-getting-started-with-java-json-serialization-deserialization) by `Future Studio`
-  * [Gson API Report](https://abi-laboratory.pro/java/tracker/timeline/gson/)
+* [Gson Tutorial](https://www.studytrails.com/java/json/java-google-json-introduction/) by `StudyTrails`
+* [Gson Tutorial Series](https://futurestud.io/tutorials/gson-getting-started-with-java-json-serialization-deserialization) by `Future Studio`
+* [Gson API Report](https://abi-laboratory.pro/java/tracker/timeline/gson/)
 
 ### License
 

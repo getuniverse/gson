@@ -1,5 +1,6 @@
 package com.google.gson.functional;
 
+import static com.google.gson.JsonSnippet.json;
 import static com.google.gson.ToNumberPolicy.LONG_OR_DOUBLE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -25,28 +26,28 @@ public final class JsonSnippetTest {
     public void serializationFull() {
         final String json = GSON.toJson(Map.of("a", List.of(1, 2), "b", true, "c", List.of(Map.of("x", "y", "v", "w"))));
 
-        assertThat(GSON.toJson(new JsonSnippet(json)), is(json));
+        assertThat(GSON.toJson(JsonSnippet.with(json)), is(json));
     }
 
     @Test
     public void nullValue() {
         final String json = "null";
 
-        assertThat(GSON.toJson(new JsonSnippet(null)), is(json));
-        assertThat(GSON.toJson(new JsonSnippet(json)), is(json));
-        assertThat(GSON.fromJson(json, JsonSnippet.class).get(), is(json));
+        assertThat(GSON.toJson(JsonSnippet.with(null)), is(json));
+        assertThat(GSON.toJson(JsonSnippet.with(json)), is(json));
+        assertThat(json(GSON.fromJson(json, JsonSnippet.class)), is(json));
     }
 
     @Test
     public void serializationParts() {
-        final JsonSnippet _true = new JsonSnippet("true");
-        final JsonSnippet _false = new JsonSnippet("false");
-        final JsonSnippet _null = new JsonSnippet("null");
-        final JsonSnippet _int = new JsonSnippet("1234");
-        final JsonSnippet _string = new JsonSnippet("\"abcd\"");
-        final JsonSnippet _list = new JsonSnippet(GSON.toJson(List.of(1, 2)));
-        final JsonSnippet _map = new JsonSnippet(GSON.toJson(Map.of("x", "y")));
-        final JsonSnippet _nested = new JsonSnippet(GSON.toJson(Map.of("x", _list)));
+        final JsonSnippet _true = JsonSnippet.with("true");
+        final JsonSnippet _false = JsonSnippet.with("false");
+        final JsonSnippet _null = JsonSnippet.with("null");
+        final JsonSnippet _int = JsonSnippet.with("1234");
+        final JsonSnippet _string = JsonSnippet.with("\"abcd\"");
+        final JsonSnippet _list = JsonSnippet.with(GSON.toJson(List.of(1, 2)));
+        final JsonSnippet _map = JsonSnippet.with(GSON.toJson(Map.of("x", "y")));
+        final JsonSnippet _nested = JsonSnippet.with(GSON.toJson(Map.of("x", _list)));
 
         final String json = GSON.toJson(Map.of("a", _true,
                                                "b", _false,
@@ -57,7 +58,7 @@ public final class JsonSnippetTest {
                                                "g", _map,
                                                "h", _nested));
 
-        assertThat(GSON.toJson(new JsonSnippet(json)), is(json));
+        assertThat(GSON.toJson(JsonSnippet.with(json)), is(json));
     }
 
     @Test
@@ -65,7 +66,7 @@ public final class JsonSnippetTest {
         final String json = GSON.toJson(Map.of("a", List.of(1, 2), "b", true, "c", List.of(Map.of("x", "y", "v", "w"))));
 
         final JsonTreeWriter writer = new JsonTreeWriter();
-        GSON.toJson(new JsonSnippet(json), Object.class, writer);
+        GSON.toJson(JsonSnippet.with(json), Object.class, writer);
 
         assertThat(GSON.toJson(writer.get()), is(json));
     }
@@ -78,7 +79,7 @@ public final class JsonSnippetTest {
 
         final JsonSnippet text = GSON.fromJson(json, JsonSnippet.class);
 
-        assertThat(text.get(), is(json.replaceAll("\\s+", "")));
+        assertThat(json(text), is(json.replaceAll("\\s+", "")));
     }
 
     @Test
@@ -90,13 +91,27 @@ public final class JsonSnippetTest {
 
         assertThat(r1.x, is("text"));
         assertThat(r1.y, is(12345678L));
-        assertThat(r1.d.get(), is("""
+        assertThat(json(r1.d), is("""
                                {"a":"b","c":[1,2]}"""));
 
         assertThat(r1.r2.a, is("a"));
         assertThat(r1.r2.b, is(0L));
-        assertThat(r1.r2.d.get(), is("""
+        assertThat(json(r1.r2.d), is("""
                                [1,"2",3]"""));
+    }
+
+    @Test
+    public void parsingPartialNull() throws Exception {
+        final R1 r0 = new R1("text", null, 12345678, new R2("a", null, 0));
+        final R1 r1 = GSON.fromJson(GSON.toJson(r0), R1.class);
+
+        assertThat(r1.x, is("text"));
+        assertThat(r1.y, is(12345678L));
+        assertThat(json(r1.d), is("null"));
+
+        assertThat(r1.r2.a, is("a"));
+        assertThat(r1.r2.b, is(0L));
+        assertThat(json(r1.r2.d), is("null"));
     }
 
     public record R1(String x, JsonSnippet d, long y, R2 r2) {}
