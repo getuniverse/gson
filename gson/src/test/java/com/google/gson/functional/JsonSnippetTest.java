@@ -1,6 +1,5 @@
 package com.google.gson.functional;
 
-import static com.google.gson.JsonSnippet.json;
 import static com.google.gson.ToNumberPolicy.LONG_OR_DOUBLE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -36,7 +35,7 @@ public final class JsonSnippetTest {
 
         assertThat(GSON.toJson(JsonSnippet.with(null)), is(json));
         assertThat(GSON.toJson(JsonSnippet.with(json)), is(json));
-        assertNull(json(GSON.fromJson(json, JsonSnippet.class)));
+        assertNull(JsonSnippet.get(GSON.fromJson(json, JsonSnippet.class)));
     }
 
     @Test
@@ -79,7 +78,7 @@ public final class JsonSnippetTest {
 
         final JsonSnippet text = GSON.fromJson(json, JsonSnippet.class);
 
-        assertThat(json(text), is(json.replaceAll("\\s+", "")));
+        assertThat(JsonSnippet.get(text), is(json.replaceAll("\\s+", "")));
     }
 
     @Test
@@ -91,12 +90,12 @@ public final class JsonSnippetTest {
 
         assertThat(r1.x, is("text"));
         assertThat(r1.y, is(12345678L));
-        assertThat(json(r1.d), is("""
+        assertThat(JsonSnippet.get(r1.d), is("""
                                {"a":"b","c":[1,2]}"""));
 
         assertThat(r1.r2.a, is("a"));
         assertThat(r1.r2.b, is(0L));
-        assertThat(json(r1.r2.d), is("""
+        assertThat(JsonSnippet.get(r1.r2.d), is("""
                                [1,"2",3]"""));
     }
 
@@ -107,11 +106,11 @@ public final class JsonSnippetTest {
 
         assertThat(r1.x, is("text"));
         assertThat(r1.y, is(12345678L));
-        assertNull(json(r1.d));
+        assertNull(JsonSnippet.get(r1.d));
 
         assertThat(r1.r2.a, is("a"));
         assertThat(r1.r2.b, is(0L));
-        assertNull(json(r1.r2.d));
+        assertNull(JsonSnippet.get(r1.r2.d));
     }
 
     public record R1(String x, JsonSnippet d, long y, R2 r2) {}

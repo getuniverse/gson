@@ -1,6 +1,5 @@
 package com.google.gson.internal.bind;
 
-import static com.google.gson.JsonSnippet.json;
 import static com.google.gson.ToNumberPolicy.LONG_OR_DOUBLE;
 
 import java.io.IOException;
@@ -29,7 +28,7 @@ public final class JsonSnippetTypeAdapter extends TypeAdapter<JsonSnippet> {
 
     @Override
     public void write(final JsonWriter out, final JsonSnippet value) throws IOException {
-        final String json = json(value);
+        final String json = JsonSnippet.get(value);
 
         try {
             out.jsonValue(json);
