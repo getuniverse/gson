@@ -7,14 +7,14 @@ There are a few open-source projects that can convert Java objects to JSON. Howe
 
 **NOTE**: this is a _fork_ of the official Gson code that fixes issues we at Happeo find important.
 
-### Goals
+## Goals
 * Provide simple `toJson()` and `fromJson()` methods to convert Java objects to JSON and vice-versa
 * Allow pre-existing unmodifiable objects to be converted to and from JSON
 * Extensive support of Java Generics
 * Allow custom representations for objects
 * Support arbitrarily complex objects (with deep inheritance hierarchies and extensive use of generic types)
 
-### Download
+## Download
 
 Maven:
 ```xml
@@ -29,13 +29,13 @@ Maven:
 
 ![Build Status](https://github.com/google/gson/actions/workflows/build.yml/badge.svg)
 
-### Requirements
-#### Minimum Java version
+## Requirements
+### Minimum Java version
 - Java 8
 
 Despite supporting older Java versions, Gson also provides a JPMS module descriptor (module name `com.google.gson`) for users of Java 9 or newer.
 
-#### JPMS dependencies (Java 9+)
+### JPMS dependencies (Java 9+)
 These are the optional Java Platform Module System (JPMS) JDK modules which Gson depends on.
 This only applies when running Java 9 or newer.
 
@@ -47,7 +47,7 @@ This only applies when running Java 9 or newer.
   However, care should be taken when relying on this. `Unsafe` is not available in all environments and its usage has some pitfalls,
   see [`GsonBuilder.disableJdkUnsafe()`](https://javadoc.io/doc/com.google.code.gson/gson/latest/com.google.gson/com/google/gson/GsonBuilder.html#disableJdkUnsafe()).
 
-### Documentation
+## Documentation
 * [API Javadoc](https://www.javadoc.io/doc/com.google.code.gson/gson): Documentation for the current release
 * [User guide](https://github.com/google/gson/blob/master/UserGuide.md): This guide contains examples on how to use Gson in your code.
 * [Change log](https://github.com/google/gson/blob/master/CHANGELOG.md): Changes in the recent versions
@@ -55,12 +55,12 @@ This only applies when running Java 9 or newer.
 
 Please use the ['gson' tag on StackOverflow](https://stackoverflow.com/questions/tagged/gson) or the [google-gson Google group](https://groups.google.com/group/google-gson) to discuss Gson or to post questions.
 
-### Related Content Created by Third Parties
+## Related Content Created by Third Parties
 * [Gson Tutorial](https://www.studytrails.com/java/json/java-google-json-introduction/) by `StudyTrails`
 * [Gson Tutorial Series](https://futurestud.io/tutorials/gson-getting-started-with-java-json-serialization-deserialization) by `Future Studio`
 * [Gson API Report](https://abi-laboratory.pro/java/tracker/timeline/gson/)
 
-### License
+## License
 
 Gson is released under the [Apache 2.0 license](LICENSE).
 
@@ -80,6 +80,55 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ```
 
-### Disclaimer
+## Disclaimer
 
 This is not an officially supported Google product.
+
+## Release
+
+Root POM:
+
+```xml
+<properties>
+    <artifactory.repository.url.base>…</artifactory.repository.url.base>
+</properties>
+
+…
+
+<distributionManagement>
+    <repository>
+        <id>central</id>
+        <name>happeo-releases</name>
+        <url>${artifactory.repository.url.base}/libs-release-local</url>
+    </repository>
+    <snapshotRepository>
+        <id>snapshots</id>
+        <name>happeo-snapshots</name>
+        <url>${artifactory.repository.url.base}/libs-snapshot-local</url>
+    </snapshotRepository>
+</distributionManagement>
+```
+
+Commands:
+
+```shell
+$ GSON_VERSION=<release version>
+$ git checkout master
+$ git merge gson-parent-${GSON_VERSION}
+```
+
+Set the release version in the POMs, then:
+
+```shell
+$ git commit -qam "[RELEASE] ${GSON_VERSION} released"
+$ git tag -afm "[RELEASE] ${GSON_VERSION}" "gson-parent-${GSON_VERSION}"
+$ mvn clean deploy
+```
+
+Bump to the next snapshot version in the POMs, then:
+
+```shell
+$ GSON_VERSION=<next release version>
+$ git commit -qam "[RELEASE] ${GSON_VERSION} prepared"
+$ git push --follow-tags origin
+```
