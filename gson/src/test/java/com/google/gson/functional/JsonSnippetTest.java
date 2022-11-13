@@ -50,7 +50,11 @@ public final class JsonSnippetTest {
 
         assertThat(GSON.toJson(JsonSnippet.with(null)), is(json));
         assertThat(GSON.toJson(JsonSnippet.with(json)), is(json));
+        assertThat(GSON.toJson(JsonSnippet.with("")), is(json));
+        assertThat(GSON.toJson(JsonSnippet.with(" ")), is(json));
         assertNull(JsonSnippet.get(GSON.fromJson(json, JsonSnippet.class)));
+        assertNull(JsonSnippet.get(GSON.fromJson("", JsonSnippet.class)));
+        assertNull(JsonSnippet.get(GSON.fromJson(" ", JsonSnippet.class)));
     }
 
     @Test

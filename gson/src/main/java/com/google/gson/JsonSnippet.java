@@ -63,8 +63,8 @@ public final class JsonSnippet {
      * @return a new instance; may be <code>null</code>.
      */
     public static JsonSnippet with(final CharSequence json) {
-        final String snippet = json == null ? "null" : json.toString();
-        return snippet.equals("null") ? null : new JsonSnippet(snippet);
+        final String snippet = json == null ? "" : json.toString().trim();
+        return snippet.isEmpty() || snippet.equals("null") ? null : new JsonSnippet(snippet);
     }
 
     /**
