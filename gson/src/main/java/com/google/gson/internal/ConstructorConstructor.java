@@ -54,7 +54,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
  * Returns a function that can construct an instance of a requested type.
  */
 public final class ConstructorConstructor {
-
   private final Map<Type, InstanceCreator<?>> instanceCreators;
   private final boolean useJdkUnsafe;
   private final List<ReflectionAccessFilter> reflectionFilters;
@@ -265,15 +264,17 @@ public final class ConstructorConstructor {
           @SuppressWarnings("unchecked") // T is the same raw type as is requested
           T newInstance = (T) constructor.newInstance();
           return newInstance;
-          // Note: InstantiationException should be impossible because check at start of method made sure
-          //   that class is not abstract
-        } catch (InstantiationException e) {
-          // TODO: JsonParseException ?
-          throw new RuntimeException("Failed to invoke constructor '" + ReflectionHelper.constructorToString(constructor) + "' with no args", e);
+        }
+        // Note: InstantiationException should be impossible because check at start of method made sure
+        //   that class is not abstract
+        catch (InstantiationException e) {
+          throw new RuntimeException("Failed to invoke constructor '" + ReflectionHelper.constructorToString(constructor) + "'"
+              + " with no args", e);
         } catch (InvocationTargetException e) {
           // TODO: don't wrap if cause is unchecked?
           // TODO: JsonParseException ?
-          throw new RuntimeException("Failed to invoke constructor '" + ReflectionHelper.constructorToString(constructor) + "' with no args", e.getCause());
+          throw new RuntimeException("Failed to invoke constructor '" + ReflectionHelper.constructorToString(constructor) + "'"
+              + " with no args", e.getCause());
         } catch (IllegalAccessException e) {
           throw ReflectionHelper.createExceptionForUnexpectedIllegalAccess(e);
         }

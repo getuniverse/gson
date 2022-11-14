@@ -28,7 +28,7 @@ package com.google.gson;
  * Partial mapping also allows adding un-parsed JSON, possibly coming from the database where the partial JSON text was
  * previously saved, to an object mapped to JSON and returned as a representation of resource state.
  * <h3>Usage</h3>
- * Define client-controlled JSON snippets as <code>JsonSnippet</code> fields:
+ * Define client-controlled JSON snippets as {@code JsonSnippet} fields:
  * <pre><code>
  * public class MyJsonType {
  *     &hellip;
@@ -48,19 +48,19 @@ package com.google.gson;
  * String customDetails = JsonSnippet.get(data.customDetails);
  * </code></pre>
  * <p>
- * NULL JSON values are represented by Java <code>null</code> values: both <code>JsonSnippet.with(null)</code> and
- * <code>JsonSnippet.with("null")</code> return <code>null</code>, which means that <code>new Gson().fromJson("null",
- * JsonSnippet.class)</code> will also return <code>null</code>, as will <code>JsonSnippet.get(new Gson().fromJson("null",
- * JsonSnippet.class))</code>.
+ * NULL JSON values are represented by Java {@code null} values: both {@code JsonSnippet.with(null)} and
+ * {@code JsonSnippet.with("null")} return {@code null}, which means that
+ * {@code new Gson().fromJson("null", JsonSnippet.class)} will also return {@code null}, as will
+ * {@code JsonSnippet.get(new Gson().fromJson("null", JsonSnippet.class))}.
  */
 public final class JsonSnippet {
 
     /**
      * Creates a new JSON snippet instance. Use {@link #get(JsonSnippet)} to access the snippet.
      *
-     * @param json the JSON snippet to encapsulate; may be <code>null</code>.
+     * @param json the JSON snippet to encapsulate; may be {@code null}.
      *
-     * @return a new instance; may be <code>null</code>.
+     * @return a new instance; may be {@code null}.
      */
     public static JsonSnippet with(final CharSequence json) {
         final String snippet = json == null ? "" : json.toString().trim();
@@ -70,9 +70,9 @@ public final class JsonSnippet {
     /**
      * Reads the JSON snippet encapsulated in the provided instance.
      *
-     * @param snippet deserialized JSON snippet; may be <code>null</code>.
+     * @param snippet deserialized JSON snippet; may be {@code null}.
      *
-     * @return the JSON snippet; may be <code>null</code>.
+     * @return the JSON snippet; may be {@code null}.
      */
     public static String get(final JsonSnippet snippet) {
         return snippet == null ? null : snippet.json;
