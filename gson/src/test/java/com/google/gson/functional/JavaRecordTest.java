@@ -19,6 +19,7 @@ import static com.google.gson.ToNumberPolicy.LONG_OR_DOUBLE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 
@@ -26,10 +27,12 @@ import org.junit.Test;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 public final class JavaRecordTest {
 
     private static final Gson GSON = new GsonBuilder()
+            .setNumberToNumberStrategy(LONG_OR_DOUBLE)
             .setObjectToNumberStrategy(LONG_OR_DOUBLE)
             .create();
 
@@ -72,7 +75,17 @@ public final class JavaRecordTest {
         assertThat(GSON.fromJson("{}", Complex.class), is(new Complex(null, null)));
     }
 
-    private <T> void verifyJSON(final Class<T> type, final T original) {
+    @Test
+    public void parameterizedRecords() {
+        verifyJSON(TypeToken.getParameterized(Parameterized.class, String.class, String.class).getType(),
+                   new Parameterized<>("string", List.of("1234", "2345")));
+        verifyJSON(TypeToken.getParameterized(Parameterized.class, String.class, Simple.class).getType(),
+                   new Parameterized<>(new Simple("abcd", 12), List.of("1234", "2345")));
+        verifyJSON(TypeToken.getParameterized(Parameterized.class, Simple.class, String.class).getType(),
+                   new Parameterized<>("xxxx", List.of(new Simple("abcd", 12), new Simple("efgh", 23))));
+    }
+
+    private <T> void verifyJSON(final Type type, final T original) {
         final String json = GSON.toJson(original);
         final Object parsed = GSON.fromJson(json, type);
 
@@ -88,4 +101,6 @@ public final class JavaRecordTest {
     public record Generic(String text, List<Nested> list) {}
 
     public record Complex(Recursive simple, Map<String, Generic> map) {}
+
+    public record Parameterized<T, S>(S simple, List<T> list) {}
 }
