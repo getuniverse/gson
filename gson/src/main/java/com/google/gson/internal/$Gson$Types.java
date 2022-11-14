@@ -148,14 +148,8 @@ public final class $Gson$Types {
       return Array.newInstance(getRawType(componentType), 0).getClass();
 
     } else if (type instanceof TypeVariable) {
-      TypeVariable<?> variable = (TypeVariable<?>) type;
-
-      for (final TypeVariable<?> defined : variable.getGenericDeclaration().getTypeParameters()) {
-        if (Objects.equals(defined.getName(), variable.getName())) {
-          return getRawType(defined.getBounds()[0]);
-        }
-      }
-
+      // we could use the variable's bounds, but that won't work if there are multiple.
+      // having a raw type that's more general than necessary is okay
       return Object.class;
 
     } else if (type instanceof WildcardType) {

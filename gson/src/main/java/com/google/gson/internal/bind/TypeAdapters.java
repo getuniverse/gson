@@ -924,7 +924,7 @@ public final class TypeAdapters {
   public static final TypeAdapterFactory ENUM_FACTORY = new TypeAdapterFactory() {
     @Override public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
       Class<? super T> rawType = typeToken.getRawType();
-      if (!Enum.class.isAssignableFrom(rawType)) {
+      if (!Enum.class.isAssignableFrom(rawType) || rawType == Enum.class) {
         return null;
       }
       if (!rawType.isEnum()) {
