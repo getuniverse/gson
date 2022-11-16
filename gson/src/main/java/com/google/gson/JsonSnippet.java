@@ -15,6 +15,10 @@
  */
 package com.google.gson;
 
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.function.Supplier;
+
 /**
  * Instances of this class encapsulate a pre-encoded JSON snippet. Use this class to exclude parts, or the entirety, of
  * a JSON input or output from <em>automatic</em> object mapping.
@@ -78,6 +82,27 @@ public final class JsonSnippet {
         return snippet == null ? null : snippet.json;
     }
 
+    /**
+     * Creates a {@code Reader} from the given JSON {@code snippet}.
+     *
+     * @param snippet the JSON snippet to read; may be {@code null}, in which case {@code "null"} will be read.
+     *
+     * @return a new readr; never <code>null</code>.
+     */
+    public static Reader reader(final JsonSnippet snippet) {
+        return new StringReader(String.valueOf(get(snippet)));
+    }
+
+    /**
+     * Creates a new {@code Writer} that writes into a new {@code JsonSnippet}, which can then be retrieved by calling
+     * {@link Writer#get()}.
+     *
+     * @return a new writer; never {@code null}.
+     */
+    public static Writer writer() {
+        return new Writer();
+    }
+
     private final String json;
 
     private JsonSnippet(final String json) {
@@ -107,5 +132,42 @@ public final class JsonSnippet {
     @Override
     public String toString() {
         return json;
+    }
+
+    /**
+     * A {@code java.io.Writer} that {@link #get() supplies} a {@link JsonSnippet} from the written.
+     */
+    public static final class Writer extends java.io.Writer implements Supplier<JsonSnippet> {
+
+        private final StringBuilder json = new StringBuilder(1024);
+
+        Writer() {
+            // empty
+        }
+
+        /**
+         * Creates a new {@link JsonSnippet} from what has been {@link #flush() flushed} so far to this writer.
+         *
+         * @return a new {@link JsonSnippet}; may be <code>null</code>.
+         */
+        @Override
+        public JsonSnippet get() {
+            return JsonSnippet.with(json);
+        }
+
+        @Override
+        public void write(final char[] characters, final int offset, final int length) {
+            json.append(characters, offset, length);
+        }
+
+        @Override
+        public void flush() {
+            // empty
+        }
+
+        @Override
+        public void close() {
+            // empty
+        }
     }
 }

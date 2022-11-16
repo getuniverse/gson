@@ -40,21 +40,34 @@ public final class JsonSnippetTest {
     @Test
     public void serializationFull() {
         final String json = GSON.toJson(Map.of("a", List.of(1, 2), "b", true, "c", List.of(Map.of("x", "y", "v", "w"))));
+        final JsonSnippet in = JsonSnippet.with(json);
+        final JsonSnippet.Writer out = JsonSnippet.writer();
 
-        assertThat(GSON.toJson(JsonSnippet.with(json)), is(json));
+        assertThat(GSON.toJson(in), is(json));
+
+        GSON.toJson(GSON.fromJson(JsonSnippet.reader(in), JsonSnippet.class), JsonSnippet.class, out);
+
+        assertThat(JsonSnippet.get(out.get()), is(JsonSnippet.get(in)));
     }
 
     @Test
     public void nullValue() {
-        final String json = "null";
+        verifyNull(null);
+        verifyNull("null");
+        verifyNull("");
+        verifyNull(" ");
+    }
 
-        assertThat(GSON.toJson(JsonSnippet.with(null)), is(json));
-        assertThat(GSON.toJson(JsonSnippet.with(json)), is(json));
-        assertThat(GSON.toJson(JsonSnippet.with("")), is(json));
-        assertThat(GSON.toJson(JsonSnippet.with(" ")), is(json));
-        assertNull(JsonSnippet.get(GSON.fromJson(json, JsonSnippet.class)));
-        assertNull(JsonSnippet.get(GSON.fromJson("", JsonSnippet.class)));
-        assertNull(JsonSnippet.get(GSON.fromJson(" ", JsonSnippet.class)));
+    private void verifyNull(final String nullOrBlank) {
+        assertThat(GSON.toJson(JsonSnippet.with(nullOrBlank)), is("null"));
+        assertNull(JsonSnippet.get(GSON.fromJson(nullOrBlank, JsonSnippet.class)));
+
+        final JsonSnippet in = JsonSnippet.with(nullOrBlank);
+        final JsonSnippet.Writer out = JsonSnippet.writer();
+
+        GSON.toJson(GSON.fromJson(JsonSnippet.reader(in), JsonSnippet.class), JsonSnippet.class, out);
+
+        assertThat(JsonSnippet.get(out.get()), is(JsonSnippet.get(in)));
     }
 
     @Test
@@ -76,7 +89,13 @@ public final class JsonSnippetTest {
                                                "g", _map,
                                                "h", _nested));
 
-        assertThat(GSON.toJson(JsonSnippet.with(json)), is(json));
+        final JsonSnippet in = JsonSnippet.with(json);
+        final JsonSnippet.Writer out = JsonSnippet.writer();
+
+        assertThat(GSON.toJson(in), is(json));
+        GSON.toJson(GSON.fromJson(JsonSnippet.reader(in), JsonSnippet.class), JsonSnippet.class, out);
+
+        assertThat(JsonSnippet.get(out.get()), is(JsonSnippet.get(in)));
     }
 
     @Test

@@ -24,7 +24,8 @@ public final class JsonSnippetTypeAdapter extends TypeAdapter<JsonSnippet> {
             .setNumberToNumberStrategy(LONG_OR_DOUBLE)
             .disableHtmlEscaping()
             .disableInnerClassSerialization()
-            .disableJdkUnsafe().create();
+            .disableJdkUnsafe()
+            .create();
 
     @Override
     public void write(final JsonWriter out, final JsonSnippet value) throws IOException {
