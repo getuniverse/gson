@@ -1234,8 +1234,7 @@ public final class Gson {
       reader.peek();
       isEmpty = false;
       TypeAdapter<T> typeAdapter = getAdapter(typeOfT);
-      T object = typeAdapter.read(reader);
-      return object;
+      return typeAdapter.read(reader);
     } catch (EOFException e) {
       /*
        * For compatibility with JSON 1.5 and earlier, we return null for empty
@@ -1385,11 +1384,9 @@ public final class Gson {
 
   @Override
   public String toString() {
-    return new StringBuilder("{serializeNulls:")
-        .append(serializeNulls)
-        .append(",factories:").append(factories)
-        .append(",instanceCreators:").append(constructorConstructor)
-        .append("}")
-        .toString();
+    return "{serializeNulls:" + serializeNulls
+        + ",factories:" + factories
+        + ",instanceCreators:" + constructorConstructor
+        + "}";
   }
 }

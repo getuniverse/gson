@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Properties;
+import java.util.Objects;
 
 /**
  * Static methods for working with types.
@@ -166,7 +167,7 @@ public final class $Gson$Types {
   }
 
   private static boolean equal(Object a, Object b) {
-    return a == b || (a != null && a.equals(b));
+    return Objects.equals(a, b);
   }
 
   /**

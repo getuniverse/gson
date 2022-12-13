@@ -13,7 +13,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  * This file has been modified by Happeo Oy.
  */
 
@@ -42,10 +42,10 @@ import java.util.Map;
  */
 public final class JsonTreeReader extends JsonReader {
   private static final Reader UNREADABLE_READER = new Reader() {
-    @Override public int read(char[] buffer, int offset, int count) throws IOException {
+    @Override public int read(char[] buffer, int offset, int count) {
       throw new InvalidStateException();
     }
-    @Override public void close() throws IOException {
+    @Override public void close() {
       throw new InvalidStateException();
     }
   };
