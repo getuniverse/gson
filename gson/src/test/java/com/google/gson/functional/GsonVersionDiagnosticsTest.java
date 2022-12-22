@@ -18,11 +18,8 @@
  */
 package com.google.gson.functional;
 
-import java.io.IOException;
-import java.util.regex.Pattern;
-
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -30,15 +27,17 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.internal.InvalidStateException;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-
-import junit.framework.TestCase;
+import java.io.IOException;
+import java.util.regex.Pattern;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Functional tests to validate printing of Gson version on AssertionErrors
  *
  * @author Inderjeet Singh
  */
-public class GsonVersionDiagnosticsTest extends TestCase {
+public class GsonVersionDiagnosticsTest {
   // We require a patch number, even if it is .0, consistent with https://semver.org/#spec-item-2.
   private static final Pattern GSON_VERSION_PATTERN =
       Pattern.compile("(\\(GSON \\d\\.\\d+\\.\\d)([-.][0-9a-zA-Z]+)*\\)$");
@@ -46,7 +45,6 @@ public class GsonVersionDiagnosticsTest extends TestCase {
   private Gson gson;
 
   @Before
-  @Override
   public void setUp() {
     gson = new GsonBuilder().registerTypeAdapter(TestType.class, new TypeAdapter<TestType>() {
       @Override public void write(JsonWriter out, TestType value) {
