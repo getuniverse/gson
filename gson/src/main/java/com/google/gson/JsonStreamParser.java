@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2023 Happeo Oy.
  * Copyright (C) 2009 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,6 +13,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * This file has been modified by Happeo Oy.
  */
 package com.google.gson;
 
@@ -33,7 +36,7 @@ import java.util.NoSuchElementException;
  * <p>This class is conditionally thread-safe (see Item 70, Effective Java second edition). To
  * properly use this class across multiple threads, you will need to add some external
  * synchronization. For example:
- * 
+ *
  * <pre>
  * JsonStreamParser parser = new JsonStreamParser("['first'] {'second':10} 'third'");
  * JsonElement element;
@@ -85,13 +88,7 @@ public final class JsonStreamParser implements Iterator<JsonElement> {
       throw new NoSuchElementException();
     }
 
-    try {
-      return Streams.parse(parser);
-    } catch (StackOverflowError e) {
-      throw new JsonParseException("Failed parsing JSON source to Json", e);
-    } catch (OutOfMemoryError e) {
-      throw new JsonParseException("Failed parsing JSON source to Json", e);
-    }
+    return Streams.parse(parser);
   }
 
   /**

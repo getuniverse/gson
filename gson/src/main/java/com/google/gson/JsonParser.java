@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2023 Happeo Oy.
  * Copyright (C) 2009 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,6 +13,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * This file has been modified by Happeo Oy.
  */
 package com.google.gson;
 
@@ -100,10 +103,6 @@ public final class JsonParser {
     reader.setLenient(true);
     try {
       return Streams.parse(reader);
-    } catch (StackOverflowError e) {
-      throw new JsonParseException("Failed parsing JSON source: " + reader + " to Json", e);
-    } catch (OutOfMemoryError e) {
-      throw new JsonParseException("Failed parsing JSON source: " + reader + " to Json", e);
     } finally {
       reader.setLenient(lenient);
     }
