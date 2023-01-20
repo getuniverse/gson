@@ -136,6 +136,7 @@ public class ConcurrencyTest {
    * Test for:
    * https://github.com/google/gson/issues/764
    */
+  @Test
   public void testMultiThreadRecursiveObjectSerialization() throws InterruptedException {
     final int threads = 4;
     final ExecutorService executor = Executors.newFixedThreadPool(threads);
