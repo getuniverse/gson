@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2022 Happeo Oy.
- * Copyright (C) 2017 The Gson authors
+ * Copyright (C) 2021 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
