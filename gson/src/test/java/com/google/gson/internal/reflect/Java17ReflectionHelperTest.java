@@ -20,7 +20,7 @@
 
 package com.google.gson.internal.reflect;
 
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 
 import java.nio.file.attribute.GroupPrincipal;
 import java.nio.file.attribute.UserPrincipal;
@@ -34,7 +34,7 @@ public class Java17ReflectionHelperTest {
   public void testJava17Record() throws ClassNotFoundException {
     Class<?> unixDomainPrincipalClass = Class.forName("jdk.net.UnixDomainPrincipal");
     // UnixDomainPrincipal is a record
-    assertTrue(Records.isRecord(unixDomainPrincipalClass));
+    assertThat(Records.isRecord(unixDomainPrincipalClass)).isTrue();
   }
 
   /** Implementation of {@link UserPrincipal} and {@link GroupPrincipal} just for record tests. */

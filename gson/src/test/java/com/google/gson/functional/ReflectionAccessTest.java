@@ -18,9 +18,7 @@
  */
 package com.google.gson.functional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
 import com.google.gson.Gson;
@@ -69,7 +67,7 @@ public class ReflectionAccessTest {
   public void testSerializeInternalImplementationObject() {
     Gson gson = new Gson();
     String json = gson.toJson(Collections.emptyList());
-    assertEquals("[]", json);
+    assertThat(json).isEqualTo("[]");
 
     // But deserialization should fail
     Class<?> internalClass = Collections.emptyList().getClass();
@@ -79,10 +77,8 @@ public class ReflectionAccessTest {
     } catch (JsonSyntaxException e) {
       fail("Unexpected exception; test has to be run with `--illegal-access=deny`");
     } catch (JsonIOException expected) {
-      assertTrue(expected.getMessage().startsWith(
-          "Failed making constructor 'java.util.Collections$EmptyList()' accessible;"
-          + " either increase its visibility or write a custom InstanceCreator or TypeAdapter for its declaring type: "
-      ));
+      assertThat(expected).hasMessageThat().startsWith("Failed making constructor 'java.util.Collections$EmptyList()' accessible;"
+          + " either increase its visibility or write a custom InstanceCreator or TypeAdapter for its declaring type: ");
     }
   }
 }

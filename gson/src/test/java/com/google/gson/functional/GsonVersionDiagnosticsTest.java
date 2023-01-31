@@ -18,7 +18,7 @@
  */
 package com.google.gson.functional;
 
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
 import com.google.gson.Gson;
@@ -58,9 +58,9 @@ public class GsonVersionDiagnosticsTest {
 
   @Test
   public void testVersionPattern() {
-    assertTrue(GSON_VERSION_PATTERN.matcher("(GSON 2.8.5)").matches());
-    assertTrue(GSON_VERSION_PATTERN.matcher("(GSON 2.8.5-SNAPSHOT)").matches());
-    assertTrue(GSON_VERSION_PATTERN.matcher("(GSON 2.8.5-happeo-1-SNAPSHOT)").matches());
+    assertThat(GSON_VERSION_PATTERN.matcher("(GSON 2.8.5)").matches()).isTrue();
+    assertThat(GSON_VERSION_PATTERN.matcher("(GSON 2.8.5-SNAPSHOT)").matches()).isTrue();
+    assertThat(GSON_VERSION_PATTERN.matcher("(GSON 2.8.5-happeo-1-SNAPSHOT)").matches()).isTrue();
   }
 
   @Test
@@ -87,12 +87,12 @@ public class GsonVersionDiagnosticsTest {
     String msg = expected.getMessage();
     // System.err.println(msg);
     int start = msg.indexOf("(GSON");
-    assertTrue(start > 0);
+    assertThat(start > 0).isTrue();
     int end = msg.indexOf("):") + 1;
-    assertTrue(end > 0 && end > start + 6);
+    assertThat(end > 0 && end > start + 6).isTrue();
     String version = msg.substring(start, end);
     // System.err.println(version);
-    assertTrue(version, GSON_VERSION_PATTERN.matcher(version).matches());
+    assertThat(GSON_VERSION_PATTERN.matcher(version).matches()).isTrue();
   }
 
   private static final class TestType {
