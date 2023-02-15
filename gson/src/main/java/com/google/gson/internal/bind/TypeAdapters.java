@@ -127,7 +127,7 @@ public final class TypeAdapters {
     @Override public void write(JsonWriter out, BitSet src) throws IOException {
       out.beginArray();
       for (int i = 0, length = src.length(); i < length; i++) {
-        int value = (src.get(i)) ? 1 : 0;
+        int value = src.get(i) ? 1 : 0;
         out.value(value);
       }
       out.endArray();
@@ -887,7 +887,7 @@ public final class TypeAdapters {
         });
         for (Field constantField : constantFields) {
           @SuppressWarnings("unchecked")
-          T constant = (T)(constantField.get(null));
+          T constant = (T) constantField.get(null);
           String name = constant.name();
           String toStringVal = constant.toString();
 

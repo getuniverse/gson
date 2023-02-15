@@ -172,6 +172,7 @@ public final class Gson {
    * with the type token provided to {@code getAdapter} as key and either
    * {@code FutureTypeAdapter} or a regular {@code TypeAdapter} as value.
    */
+  @SuppressWarnings("ThreadLocalUsage")
   private final ThreadLocal<Map<TypeToken<?>, TypeAdapter<?>>> threadLocalAdapterResults = new ThreadLocal<>();
   private final ThreadLocal<Map<TypeToken<?>, TypeAdapter<?>>> calls
       = new ThreadLocal<>();
