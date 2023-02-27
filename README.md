@@ -21,7 +21,7 @@ Maven:
 <dependency>
   <groupId>com.google.code.gson</groupId>
   <artifactId>gson</artifactId>
-  <version>2.10-happeo-1</version>
+  <version>2.11.0-happeo-1</version>
 </dependency>
 ```
 
@@ -60,6 +60,22 @@ Please use the ['gson' tag on StackOverflow](https://stackoverflow.com/questions
   * [Gson Tutorial](https://www.studytrails.com/java/json/java-google-json-introduction/) by `StudyTrails`
   * [Gson Tutorial Series](https://futurestud.io/tutorials/gson-getting-started-with-java-json-serialization-deserialization) by `Future Studio`
   * [Gson API Report](https://abi-laboratory.pro/java/tracker/timeline/gson/)
+
+## Building
+
+Gson uses Maven to build the project:
+```
+mvn clean verify
+```
+
+JDK 17 or newer is required for building.
+
+## Contributing
+
+See the [contributing guide](https://github.com/google/.github/blob/master/CONTRIBUTING.md).  
+Please perform a quick search to check if there are already existing issues or pull requests related to your contribution.
+
+Keep in mind that Gson is in maintenance mode. If you want to add a new feature, please first search for existing GitHub issues, or create a new one to discuss the feature and get feedback.
 
 ## License
 
