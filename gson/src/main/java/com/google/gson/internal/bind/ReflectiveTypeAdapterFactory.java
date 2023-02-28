@@ -149,6 +149,14 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
 
     @SuppressWarnings("unchecked")
     final TypeAdapter<Object> typeAdapter = (TypeAdapter<Object>) mapped;
+    final TypeAdapter<Object> writeTypeAdapter;
+    if (serialize) {
+      writeTypeAdapter = jsonAdapterPresent ? typeAdapter
+          : new TypeAdapterRuntimeTypeWrapper<>(context, typeAdapter, fieldType.getType());
+    } else {
+      // Will never actually be used, but we set it to avoid confusing nullness-analysis tools
+      writeTypeAdapter = typeAdapter;
+    }
     return new BoundField(name, field, serialize, deserialize) {
       @Override void write(JsonWriter writer, Object source)
           throws IOException, IllegalAccessException {
@@ -164,9 +172,7 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
           return;
         }
         writer.name(name);
-        TypeAdapter<Object> t = jsonAdapterPresent ? typeAdapter
-            : new TypeAdapterRuntimeTypeWrapper<>(context, typeAdapter, fieldType.getType());
-        t.write(writer, fieldValue);
+        writeTypeAdapter.write(writer, fieldValue);
       }
 
       @Override
