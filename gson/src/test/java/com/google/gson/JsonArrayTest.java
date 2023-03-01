@@ -29,6 +29,8 @@ import java.math.BigInteger;
 import org.junit.Test;
 
 /**
+ * Tests handling of JSON arrays.
+ *
  * @author Jesse Wilson
  */
 public final class JsonArrayTest {
