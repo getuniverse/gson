@@ -1591,7 +1591,7 @@ public class JsonReader implements Closeable {
    * been read. This supports both unicode escapes "u000A" and two-character
    * escapes "\n".
    *
-   * @throws NumberFormatException if any unicode escape sequences are
+   * @throws MalformedJsonException if any unicode escape sequences are
    *     malformed.
    */
   @SuppressWarnings("fallthrough")
@@ -1618,7 +1618,7 @@ public class JsonReader implements Closeable {
         } else if (c >= 'A' && c <= 'F') {
           result += (c - 'A' + 10);
         } else {
-          throw new NumberFormatException("\\u" + new String(buffer, pos, 4));
+          throw new MalformedJsonException("\\u" + new String(buffer, pos, 4));
         }
       }
       pos += 4;
