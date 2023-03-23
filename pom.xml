@@ -17,7 +17,8 @@
 
   This file has been modified by Happeo Oy.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
+    child.project.url.inherit.append.path="false">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.google.code.gson</groupId>
@@ -42,7 +43,9 @@
     <maven.compiler.testRelease>17</maven.compiler.testRelease>
   </properties>
 
-  <scm>
+  <!-- These attributes specify that the URLs should be inherited by the modules as is, to avoid constructing
+    invalid URLs, see also https://maven.apache.org/ref/3.9.1/maven-model-builder/index.html#inheritance-assembly -->
+  <scm child.scm.url.inherit.append.path="false" child.scm.connection.inherit.append.path="false" child.scm.developerConnection.inherit.append.path="false">
     <url>https://github.com/getuniverse/gson/</url>
     <connection>scm:git:https://github.com/getuniverse/gson.git</connection>
     <developerConnection>scm:git:git@github.com:getuniverse/gson.git</developerConnection>
