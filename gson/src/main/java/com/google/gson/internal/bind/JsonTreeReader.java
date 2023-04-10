@@ -19,6 +19,7 @@
 
 package com.google.gson.internal.bind;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
@@ -157,6 +158,7 @@ public final class JsonTreeReader extends JsonReader {
     return stack[stackSize - 1];
   }
 
+  @CanIgnoreReturnValue
   private Object popStack() {
     Object result = stack[--stackSize];
     stack[stackSize] = null;

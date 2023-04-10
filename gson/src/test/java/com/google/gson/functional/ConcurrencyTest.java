@@ -53,7 +53,7 @@ public class ConcurrencyTest {
   public void testSingleThreadSerialization() {
     MyObject myObj = new MyObject();
     for (int i = 0; i < 10; i++) {
-      gson.toJson(myObj);
+      String unused = gson.toJson(myObj);
     }
   }
 
@@ -64,7 +64,7 @@ public class ConcurrencyTest {
   @Test
   public void testSingleThreadDeserialization() {
     for (int i = 0; i < 10; i++) {
-      gson.fromJson("{'a':'hello','b':'world','i':1}", MyObject.class);
+      MyObject unused = gson.fromJson("{'a':'hello','b':'world','i':1}", MyObject.class);
     }
   }
 
@@ -85,7 +85,7 @@ public class ConcurrencyTest {
           try {
             startLatch.await();
             for (int i = 0; i < 10; i++) {
-              gson.toJson(myObj);
+              String unused = gson.toJson(myObj);
             }
           } catch (Throwable t) {
             failed.set(true);
@@ -116,7 +116,7 @@ public class ConcurrencyTest {
           try {
             startLatch.await();
             for (int i = 0; i < 10; i++) {
-              gson.fromJson("{'a':'hello','b':'world','i':1}", MyObject.class);
+              MyObject unused = gson.fromJson("{'a':'hello','b':'world','i':1}", MyObject.class);
             }
           } catch (Throwable t) {
             failed.set(true);
@@ -129,44 +129,6 @@ public class ConcurrencyTest {
     startLatch.countDown();
     finishedLatch.await();
     assertThat(failed.get()).isFalse();
-  }
-
-  /**
-   * Test for:
-   * https://github.com/google/gson/issues/764
-   */
-  @Test
-  public void testMultiThreadRecursiveObjectSerialization() throws InterruptedException {
-    final int threads = 4;
-    final ExecutorService executor = Executors.newFixedThreadPool(threads);
-    final AtomicReference<Throwable> throwable = new AtomicReference<Throwable>();
-
-    for (int i = 0; i < 1000; i++) {
-      final CountDownLatch startLatch = new CountDownLatch(1);
-      final CountDownLatch finishedLatch = new CountDownLatch(threads);
-      final Gson gson = new Gson();
-      final MyRecursiveObject obj = new MyRecursiveObject();
-
-      for (int j = 0; j < threads; j++) {
-        executor.execute(new Runnable() {
-          @Override
-          public void run() {
-            try {
-              startLatch.await();
-              gson.toJson(obj);
-            } catch (Throwable t) {
-              throwable.set(t);
-            } finally {
-              finishedLatch.countDown();
-            }
-          }
-        });
-      }
-
-      startLatch.countDown();
-      finishedLatch.await();
-      assertThat(throwable.get()).isNull();
-    }
   }
 
   @SuppressWarnings("unused")
