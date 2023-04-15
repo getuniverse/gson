@@ -28,12 +28,24 @@ import java.lang.reflect.Method;
 
 import com.google.gson.JsonIOException;
 import com.google.gson.internal.GsonBuildConfig;
+import com.google.gson.internal.TroubleshootingGuide;
 
 public class ReflectionHelper {
 
   private ReflectionHelper() {}
 
   private static final MethodHandle trySetAccessible = getTrySetAccessibleMethod();
+
+  private static String getInaccessibleTroubleshootingSuffix(Throwable e) {
+    // Class was added in Java 9, therefore cannot use instanceof
+    if (e.getClass().getName().equals("java.lang.reflect.InaccessibleObjectException")) {
+      String message = e.getMessage();
+      String troubleshootingId = message != null && message.contains("to module com.google.gson")
+          ? "reflection-inaccessible-to-module-gson" : "reflection-inaccessible";
+      return "\nSee " + TroubleshootingGuide.createUrl(troubleshootingId);
+    }
+    return "";
+  }
 
   /**
    * Tries making the member accessible, wrapping any thrown exception in a
@@ -52,13 +64,14 @@ public class ReflectionHelper {
       if (ao instanceof Constructor) {
         Constructor<?> constructor = (Constructor<?>) ao;
         throw new JsonIOException("Failed making constructor '" + constructorToString(constructor) + "' accessible;"
-               + " either increase its visibility or write a custom InstanceCreator or TypeAdapter for"
-               // Include the message since it might contain more detailed information
-               + " its declaring type: " + error.getMessage());
+                                  + " either increase its visibility or write a custom InstanceCreator or TypeAdapter for"
+                                  // Include the message since it might contain more detailed information
+                                  + " its declaring type: " + error.getMessage() + getInaccessibleTroubleshootingSuffix(error));
       } else {
         String description = getAccessibleObjectDescription(ao, false);
         throw new JsonIOException("Failed making " + description + " accessible; either increase its visibility"
-                                  + " or write a custom TypeAdapter for its declaring type.", error);
+                                  + " or write a custom TypeAdapter for its declaring type." + getInaccessibleTroubleshootingSuffix(error),
+                                  error);
       }
     }
   }
