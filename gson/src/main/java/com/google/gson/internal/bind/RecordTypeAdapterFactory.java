@@ -110,7 +110,7 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
         final TypeToken<?> fieldToken = TypeToken.get(fieldType);
 
         if (adapter != null) {
-            typeAdapter = jsonAdapterFactory.getTypeAdapter(constructorConstructor, context, fieldToken, adapter);
+            typeAdapter = jsonAdapterFactory.getTypeAdapter(constructorConstructor, context, fieldToken, adapter, true);
         }
 
         final boolean wrap = typeAdapter == null;
