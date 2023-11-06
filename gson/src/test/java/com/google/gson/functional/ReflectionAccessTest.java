@@ -35,32 +35,36 @@ public class ReflectionAccessTest {
   private static class ClassWithPrivateMembers {
     private String s;
 
-    private ClassWithPrivateMembers() {
-    }
+    private ClassWithPrivateMembers() {}
   }
 
   private static JsonIOException assertInaccessibleException(String json, Class<?> toDeserialize) {
     Gson gson = new Gson();
     try {
       gson.fromJson(json, toDeserialize);
-      throw new AssertionError("Missing exception; test has to be run with `--illegal-access=deny`");
+      throw new AssertionError(
+          "Missing exception; test has to be run with `--illegal-access=deny`");
     } catch (JsonSyntaxException e) {
-      throw new AssertionError("Unexpected exception; test has to be run with `--illegal-access=deny`", e);
+      throw new AssertionError(
+          "Unexpected exception; test has to be run with `--illegal-access=deny`", e);
     } catch (JsonIOException expected) {
-      assertThat(expected).hasMessageThat().endsWith("\nSee https://github.com/google/gson/blob/main/Troubleshooting.md#reflection-inaccessible");
+      assertThat(expected)
+          .hasMessageThat()
+          .endsWith(
+              "\n"
+                  + "See https://github.com/google/gson/blob/main/Troubleshooting.md#reflection-inaccessible");
       // Return exception for further assertions
       return expected;
     }
   }
 
   /**
-   * Test serializing an instance of a non-accessible internal class, but where
-   * Gson supports serializing one of its superinterfaces.
+   * Test serializing an instance of a non-accessible internal class, but where Gson supports
+   * serializing one of its superinterfaces.
    *
-   * <p>Here {@link Collections#emptyList()} is used which returns an instance
-   * of the internal class {@code java.util.Collections.EmptyList}. Gson should
-   * serialize the object as {@code List} despite the internal class not being
-   * accessible.
+   * <p>Here {@link Collections#emptyList()} is used which returns an instance of the internal class
+   * {@code java.util.Collections.EmptyList}. Gson should serialize the object as {@code List}
+   * despite the internal class not being accessible.
    *
    * <p>See https://github.com/google/gson/issues/1875
    */
@@ -75,8 +79,11 @@ public class ReflectionAccessTest {
     JsonIOException exception = assertInaccessibleException("[]", internalClass);
     // Don't check exact class name because it is a JDK implementation detail
     assertThat(exception).hasMessageThat().startsWith("Failed making constructor '");
-    assertThat(exception).hasMessageThat().contains("' accessible; either increase its visibility or"
-        + " write a custom InstanceCreator or TypeAdapter for its declaring type: ");
+    assertThat(exception)
+        .hasMessageThat()
+        .contains(
+            "' accessible; either increase its visibility or"
+                + " write a custom InstanceCreator or TypeAdapter for its declaring type: ");
   }
 
   @Test
@@ -84,7 +91,10 @@ public class ReflectionAccessTest {
     JsonIOException exception = assertInaccessibleException("{}", Throwable.class);
     // Don't check exact field name because it is a JDK implementation detail
     assertThat(exception).hasMessageThat().startsWith("Failed making field 'java.lang.Throwable#");
-    assertThat(exception).hasMessageThat().contains("' accessible; either increase its visibility or"
-        + " write a custom TypeAdapter for its declaring type.");
+    assertThat(exception)
+        .hasMessageThat()
+        .contains(
+            "' accessible; either increase its visibility or"
+                + " write a custom TypeAdapter for its declaring type.");
   }
 }

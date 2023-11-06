@@ -45,14 +45,20 @@ public class GsonVersionDiagnosticsTest {
 
   @Before
   public void setUp() {
-    gson = new GsonBuilder().registerTypeAdapter(TestType.class, new TypeAdapter<TestType>() {
-      @Override public void write(JsonWriter out, TestType value) {
-        throw new InvalidStateException("Expected during serialization");
-      }
-      @Override public TestType read(JsonReader in) {
-        throw new InvalidStateException("Expected during deserialization");
-      }
-    }).create();
+    gson =
+        new GsonBuilder()
+            .registerTypeAdapter(
+                    TestType.class,
+                    new TypeAdapter<TestType>() {
+                        @Override public void write(JsonWriter out, TestType value) {
+                            throw new InvalidStateException("Expected during serialization");
+                        }
+
+                        @Override public TestType read(JsonReader in) {
+                            throw new InvalidStateException("Expected during deserialization");
+                        }
+                    })
+            .create();
   }
 
   @Test
@@ -70,8 +76,8 @@ public class GsonVersionDiagnosticsTest {
 
   @Test
   public void testAssertionErrorInDeserializationPrintsVersion() {
-      InvalidStateException e = assertThrows(InvalidStateException.class,
-        () -> gson.fromJson("{'a':'abc'}", TestType.class));
+      InvalidStateException e =
+        assertThrows(InvalidStateException.class, () -> gson.fromJson("{'a':'abc'}", TestType.class));
 
     ensureAssertionErrorPrintsGsonVersion(e);
   }

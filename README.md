@@ -39,13 +39,13 @@ Despite supporting older Java versions, Gson also provides a JPMS module descrip
 These are the optional Java Platform Module System (JPMS) JDK modules which Gson depends on.
 This only applies when running Java 9 or newer.
 
-- `java.sql` (optional since Gson 2.8.9)  
-  When this module is present, Gson provides default adapters for some SQL date and time classes.
+- `java.sql` (optional since Gson 2.8.9)
+When this module is present, Gson provides default adapters for some SQL date and time classes.
 
-- `jdk.unsupported`, respectively class `sun.misc.Unsafe` (optional)  
-  When this module is present, Gson can use the `Unsafe` class to create instances of classes without no-args constructor.
-  However, care should be taken when relying on this. `Unsafe` is not available in all environments and its usage has some pitfalls,
-  see [`GsonBuilder.disableJdkUnsafe()`](https://javadoc.io/doc/com.google.code.gson/gson/latest/com.google.gson/com/google/gson/GsonBuilder.html#disableJdkUnsafe()).
+- `jdk.unsupported`, respectively class `sun.misc.Unsafe` (optional)
+When this module is present, Gson can use the `Unsafe` class to create instances of classes without no-args constructor.
+However, care should be taken when relying on this. `Unsafe` is not available in all environments and its usage has some pitfalls,
+see [`GsonBuilder.disableJdkUnsafe()`](https://javadoc.io/doc/com.google.code.gson/gson/latest/com.google.gson/com/google/gson/GsonBuilder.html#disableJdkUnsafe()).
 
 ## Documentation
   * [API Javadoc](https://www.javadoc.io/doc/com.google.code.gson/gson): Documentation for the current release
@@ -72,7 +72,7 @@ JDK 17 or newer is required for building.
 
 ## Contributing
 
-See the [contributing guide](https://github.com/google/.github/blob/master/CONTRIBUTING.md).  
+See the [contributing guide](https://github.com/google/.github/blob/master/CONTRIBUTING.md).
 Please perform a quick search to check if there are already existing issues or pull requests related to your contribution.
 
 Keep in mind that Gson is in maintenance mode. If you want to add a new feature, please first search for existing GitHub issues, or create a new one to discuss the feature and get feedback.

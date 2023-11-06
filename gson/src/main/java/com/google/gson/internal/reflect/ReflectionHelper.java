@@ -40,8 +40,10 @@ public class ReflectionHelper {
     // Class was added in Java 9, therefore cannot use instanceof
     if (e.getClass().getName().equals("java.lang.reflect.InaccessibleObjectException")) {
       String message = e.getMessage();
-      String troubleshootingId = message != null && message.contains("to module com.google.gson")
-          ? "reflection-inaccessible-to-module-gson" : "reflection-inaccessible";
+      String troubleshootingId =
+          message != null && message.contains("to module com.google.gson")
+              ? "reflection-inaccessible-to-module-gson"
+              : "reflection-inaccessible";
       return "\nSee " + TroubleshootingGuide.createUrl(troubleshootingId);
     }
     return "";
@@ -63,29 +65,35 @@ public class ReflectionHelper {
     } catch (Throwable error) {
       if (ao instanceof Constructor) {
         Constructor<?> constructor = (Constructor<?>) ao;
-        throw new JsonIOException("Failed making constructor '" + constructorToString(constructor) + "' accessible;"
-                                  + " either increase its visibility or write a custom InstanceCreator or TypeAdapter for"
-                                  // Include the message since it might contain more detailed information
-                                  + " its declaring type: " + error.getMessage() + getInaccessibleTroubleshootingSuffix(error));
+        throw new JsonIOException(
+            "Failed making constructor '"
+                + constructorToString(constructor) + "' accessible;"
+                + " either increase its visibility or write a custom InstanceCreator or TypeAdapter for"
+                // Include the message since it might contain more detailed information
+                + " its declaring type: " + error.getMessage()
+                + getInaccessibleTroubleshootingSuffix(error));
       } else {
         String description = getAccessibleObjectDescription(ao, false);
-        throw new JsonIOException("Failed making " + description + " accessible; either increase its visibility"
-                                  + " or write a custom TypeAdapter for its declaring type." + getInaccessibleTroubleshootingSuffix(error),
-                                  error);
+        throw new JsonIOException(
+            "Failed making " + description
+                + " accessible; either increase its visibility"
+                + " or write a custom TypeAdapter for its declaring type."
+                + getInaccessibleTroubleshootingSuffix(error),
+            error);
       }
     }
   }
 
   /**
-   * Returns a short string describing the {@link AccessibleObject} in a human-readable way.
-   * The result is normally shorter than {@link AccessibleObject#toString()} because it omits
-   * modifiers (e.g. {@code final}) and uses simple names for constructor and method parameter
-   * types.
+   * Returns a short string describing the {@link AccessibleObject} in a human-readable way. The
+   * result is normally shorter than {@link AccessibleObject#toString()} because it omits modifiers
+   * (e.g. {@code final}) and uses simple names for constructor and method parameter types.
    *
    * @param object object to describe
    * @param uppercaseFirstLetter whether the first letter of the description should be uppercased
    */
-  public static String getAccessibleObjectDescription(AccessibleObject object, boolean uppercaseFirstLetter) {
+  public static String getAccessibleObjectDescription(
+      AccessibleObject object, boolean uppercaseFirstLetter) {
     String description;
 
     if (object instanceof Field) {
@@ -110,17 +118,14 @@ public class ReflectionHelper {
     return description;
   }
 
-  /**
-   * Creates a string representation for a field, omitting modifiers and
-   * the field type.
-   */
+  /** Creates a string representation for a field, omitting modifiers and the field type. */
   public static String fieldToString(Field field) {
     return field.getDeclaringClass().getName() + "#" + field.getName();
   }
 
   /**
-   * Creates a string representation for a constructor.
-   * E.g.: {@code java.lang.String(char[], int, int)}
+   * Creates a string representation for a constructor. E.g.: {@code java.lang.String(char[], int,
+   * int)}
    */
   public static String constructorToString(Constructor<?> constructor) {
     StringBuilder stringBuilder = new StringBuilder(constructor.getDeclaringClass().getName());
@@ -129,13 +134,15 @@ public class ReflectionHelper {
     return stringBuilder.toString();
   }
 
-  // Note: Ideally parameter type would be java.lang.reflect.Executable, but that was added in Java 8
-  private static void appendExecutableParameters(AccessibleObject executable, StringBuilder stringBuilder) {
+  // Ideally parameter type would be java.lang.reflect.Executable, but that was added in Java 8
+  private static void appendExecutableParameters(
+      AccessibleObject executable, StringBuilder stringBuilder) {
     stringBuilder.append('(');
 
-    Class<?>[] parameters = (executable instanceof Method)
-        ? ((Method) executable).getParameterTypes()
-        : ((Constructor<?>) executable).getParameterTypes();
+    Class<?>[] parameters =
+        (executable instanceof Method)
+            ? ((Method) executable).getParameterTypes()
+            : ((Constructor<?>) executable).getParameterTypes();
     for (int i = 0; i < parameters.length; i++) {
       if (i > 0) {
         stringBuilder.append(", ");
@@ -173,9 +180,11 @@ public class ReflectionHelper {
 
   public static RuntimeException createExceptionForUnexpectedIllegalAccess(
       IllegalAccessException exception) {
-    throw new RuntimeException("Unexpected IllegalAccessException occurred (Gson " + GsonBuildConfig.VERSION + ")."
-        + " Certain ReflectionAccessFilter features require Java >= 9 to work correctly. If you are not using"
-        + " ReflectionAccessFilter, report this to the Gson maintainers.",
+    throw new RuntimeException(
+        "Unexpected IllegalAccessException occurred (Gson "
+            + GsonBuildConfig.VERSION
+            + "). Certain ReflectionAccessFilter features require Java >= 9 to work correctly. If"
+            + " you are not using ReflectionAccessFilter, report this to the Gson maintainers.",
         exception);
   }
 }
