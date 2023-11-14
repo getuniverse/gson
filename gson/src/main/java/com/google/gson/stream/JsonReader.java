@@ -1343,8 +1343,8 @@ public class JsonReader implements Closeable {
           // Only update when object end is explicitly skipped, otherwise stack is not updated
           // anyways
           if (count == 0) {
-            pathNames[stackSize - 1] =
-                null; // Free the last path name so that it can be garbage collected
+            // Free the last path name so that it can be garbage collected
+            pathNames[stackSize - 1] = null;
           }
           stackSize--;
           count--;
@@ -1620,7 +1620,7 @@ public class JsonReader implements Closeable {
 
   /**
    * Returns a <a href="https://goessner.net/articles/JsonPath/">JSONPath</a> in <i>dot-notation</i>
-   * to the previous (or current) location in the JSON document:
+   * to the previous (or current) location in the JSON document. That means:
    *
    * <ul>
    *   <li>For JSON arrays the path points to the index of the previous element.<br>
@@ -1638,7 +1638,7 @@ public class JsonReader implements Closeable {
 
   /**
    * Returns a <a href="https://goessner.net/articles/JsonPath/">JSONPath</a> in <i>dot-notation</i>
-   * to the next (or current) location in the JSON document:
+   * to the next (or current) location in the JSON document. That means:
    *
    * <ul>
    *   <li>For JSON arrays the path points to the index of the next element (even if there are no

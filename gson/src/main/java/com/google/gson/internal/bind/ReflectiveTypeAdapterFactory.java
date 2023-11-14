@@ -197,8 +197,8 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
             checkAccessible(target, field);
           } else if (isStaticFinalField) {
             // Reflection does not permit setting value of `static final` field, even after calling
-            // `setAccessible` Handle this here to avoid causing IllegalAccessException when calling
-            // `Field.set`
+            // `setAccessible`
+            // Handle this here to avoid causing IllegalAccessException when calling `Field.set`
             String fieldDescription = ReflectionHelper.getAccessibleObjectDescription(field, false);
             throw new JsonIOException("Cannot set value of 'static final' " + fieldDescription);
           }
@@ -232,8 +232,7 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
             + declaringType.getName()
             + " declares multiple JSON fields named '"
             + duplicateName
-            + "'; conflict is caused"
-            + " by fields "
+            + "'; conflict is caused by fields "
             + ReflectionHelper.fieldToString(field1)
             + " and "
             + ReflectionHelper.fieldToString(field2)
@@ -266,8 +265,7 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
                   + raw
                   + " (supertype of "
                   + originalRaw
-                  + "). Register a TypeAdapter for this type"
-                  + " or adjust the access filter.");
+                  + "). Register a TypeAdapter for this type or adjust the access filter.");
         }
         blockInaccessible = filterResult == FilterResult.BLOCK_INACCESSIBLE;
       }
