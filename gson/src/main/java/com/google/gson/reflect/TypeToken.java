@@ -20,7 +20,6 @@
 package com.google.gson.reflect;
 
 import com.google.gson.internal.$Gson$Types;
-import com.google.gson.internal.InvalidStateException;
 import com.google.gson.internal.TroubleshootingGuide;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
@@ -204,7 +203,7 @@ public class TypeToken<T> {
       return rawType.isAssignableFrom($Gson$Types.getRawType(from))
           && isAssignableFrom(from, (GenericArrayType) type);
     } else {
-      throw buildUnexpectedTypeError(
+      throw buildUnsupportedTypeException(
           type, Class.class, ParameterizedType.class, GenericArrayType.class);
     }
   }
@@ -313,10 +312,11 @@ public class TypeToken<T> {
     return false;
   }
 
-  private static InvalidStateException buildUnexpectedTypeError(Type token, Class<?>... expected) {
+  private static IllegalArgumentException buildUnsupportedTypeException(
+      Type token, Class<?>... expected) {
 
     // Build exception message
-    StringBuilder exceptionMessage = new StringBuilder("Unexpected type. Expected one of: ");
+    StringBuilder exceptionMessage = new StringBuilder("Unsupported type, expected one of: ");
     for (Class<?> clazz : expected) {
       exceptionMessage.append(clazz.getName()).append(", ");
     }
@@ -324,10 +324,9 @@ public class TypeToken<T> {
         .append("but got: ")
         .append(token.getClass().getName())
         .append(", for type token: ")
-        .append(token.toString())
-        .append('.');
+        .append(token.toString());
 
-    return new InvalidStateException(exceptionMessage.toString());
+    return new IllegalArgumentException(exceptionMessage.toString());
   }
 
   /**
