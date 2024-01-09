@@ -86,7 +86,7 @@ public class GsonVersionDiagnosticsTest {
     ensureAssertionErrorPrintsGsonVersion(e);
   }
 
-  private void ensureAssertionErrorPrintsGsonVersion(InvalidStateException expected) {
+  private static void ensureAssertionErrorPrintsGsonVersion(InvalidStateException expected) {
     String msg = expected.getMessage();
     // System.err.println(msg);
     int start = msg.indexOf("(GSON");

@@ -362,6 +362,7 @@ public final class Java17RecordTest {
   }
 
   private record RecordWithStaticField() {
+    @SuppressWarnings("NonFinalStaticField")
     static String s = "initial";
   }
 

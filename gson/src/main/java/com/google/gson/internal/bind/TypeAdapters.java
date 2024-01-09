@@ -598,7 +598,7 @@ public final class TypeAdapters {
             return null;
           }
           String nextString = in.nextString();
-          return "null".equals(nextString) ? null : new URL(nextString);
+          return nextString.equals("null") ? null : new URL(nextString);
         }
 
         @Override
@@ -619,7 +619,7 @@ public final class TypeAdapters {
           }
           try {
             String nextString = in.nextString();
-            return "null".equals(nextString) ? null : new URI(nextString);
+            return nextString.equals("null") ? null : new URI(nextString);
           } catch (URISyntaxException e) {
             throw new JsonIOException(e);
           }
@@ -728,18 +728,27 @@ public final class TypeAdapters {
           while (in.peek() != JsonToken.END_OBJECT) {
             String name = in.nextName();
             int value = in.nextInt();
-            if (YEAR.equals(name)) {
-              year = value;
-            } else if (MONTH.equals(name)) {
-              month = value;
-            } else if (DAY_OF_MONTH.equals(name)) {
-              dayOfMonth = value;
-            } else if (HOUR_OF_DAY.equals(name)) {
-              hourOfDay = value;
-            } else if (MINUTE.equals(name)) {
-              minute = value;
-            } else if (SECOND.equals(name)) {
-              second = value;
+            switch (name) {
+              case YEAR:
+                year = value;
+                break;
+              case MONTH:
+                month = value;
+                break;
+              case DAY_OF_MONTH:
+                dayOfMonth = value;
+                break;
+              case HOUR_OF_DAY:
+                hourOfDay = value;
+                break;
+              case MINUTE:
+                minute = value;
+                break;
+              case SECOND:
+                second = value;
+                break;
+              default:
+                // Ignore unknown JSON property
             }
           }
           in.endObject();
@@ -1034,6 +1043,7 @@ public final class TypeAdapters {
         }
       };
 
+  @SuppressWarnings("TypeParameterNaming")
   public static <TT> TypeAdapterFactory newFactory(
       final TypeToken<TT> type, final TypeAdapter<TT> typeAdapter) {
     return new TypeAdapterFactory() {
@@ -1045,6 +1055,7 @@ public final class TypeAdapters {
     };
   }
 
+  @SuppressWarnings("TypeParameterNaming")
   public static <TT> TypeAdapterFactory newFactory(
       final Class<TT> type, final TypeAdapter<TT> typeAdapter) {
     return new TypeAdapterFactory() {
@@ -1061,6 +1072,7 @@ public final class TypeAdapters {
     };
   }
 
+  @SuppressWarnings("TypeParameterNaming")
   public static <TT> TypeAdapterFactory newFactory(
       final Class<TT> unboxed, final Class<TT> boxed, final TypeAdapter<? super TT> typeAdapter) {
     return new TypeAdapterFactory() {
@@ -1084,6 +1096,7 @@ public final class TypeAdapters {
     };
   }
 
+  @SuppressWarnings("TypeParameterNaming")
   public static <TT> TypeAdapterFactory newFactoryForMultipleTypes(
       final Class<TT> base,
       final Class<? extends TT> sub,
