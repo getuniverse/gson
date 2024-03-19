@@ -340,7 +340,7 @@ public class JsonReader implements Closeable {
   /**
    * Returns true if the {@link Strictness} of this reader is equal to {@link Strictness#LENIENT}.
    *
-   * @see #setStrictness(Strictness)
+   * @see #getStrictness()
    */
   public final boolean isLenient() {
     return strictness == Strictness.LENIENT;
@@ -397,6 +397,7 @@ public class JsonReader implements Closeable {
    * </dl>
    *
    * @param strictness the new strictness value of this reader. May not be {@code null}.
+   * @see #getStrictness()
    * @since $next-version$
    */
   public final void setStrictness(Strictness strictness) {
