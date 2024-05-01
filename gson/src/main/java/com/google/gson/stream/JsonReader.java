@@ -1181,7 +1181,7 @@ public class JsonReader implements Closeable {
     }
 
     String result =
-        (null == builder) ? new String(buffer, pos, i) : builder.append(buffer, pos, i).toString();
+        (builder == null) ? new String(buffer, pos, i) : builder.append(buffer, pos, i).toString();
     pos += i;
     return result;
   }
