@@ -7,6 +7,10 @@ There are a few open-source projects that can convert Java objects to JSON. Howe
 
 **NOTE**: this is a _fork_ of the official Gson code that fixes issues we at Happeo find important.
 
+> [!IMPORTANT]\
+> Gson's main focus is on Java. Using it with other JVM languages such as Kotlin or Scala might work fine in many cases, but language-specific features such as Kotlin's non-`null` types or constructors with default arguments are not supported. This can lead to confusing and incorrect behavior.\
+> When using languages other than Java, prefer a JSON library with explicit support for that language.
+
 ## Goals
   * Provide simple `toJson()` and `fromJson()` methods to convert Java objects to JSON and vice-versa
   * Allow pre-existing unmodifiable objects to be converted to and from JSON
