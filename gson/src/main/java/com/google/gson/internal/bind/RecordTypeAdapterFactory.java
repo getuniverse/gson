@@ -23,9 +23,10 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Type;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import com.google.gson.FieldNamingStrategy;
 import com.google.gson.Gson;
@@ -125,7 +126,7 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
                                                       final TypeToken<?> type,
                                                       final Descriptor descriptor) {
         final int fieldCount = descriptor.names.length;
-        final Map<String, BoundComponent> result = new HashMap<>(fieldCount * 2);
+        final Map<String, BoundComponent> result = new LinkedHashMap<>(fieldCount * 2);
 
         for (int i = 0; i < fieldCount; ++i) {
             final String[] fieldNames = descriptor.names[i];
@@ -289,7 +290,7 @@ public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
 
             out.beginObject();
 
-            for (BoundComponent component : components.values()) {
+            for (final BoundComponent component : components.values()) {
                 if (component.getter != null) {
                     out.name(component.name);
                     component.write(out, value);

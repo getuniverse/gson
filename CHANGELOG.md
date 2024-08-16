@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+## Version 2.10-happeo-2
+_2024-08-20_  [GitHub Diff](https://github.com/google/gson/compare/gson-parent-2.10-happeo-1...gson-parent-2.10-happeo-2)
+
+* Record components serialized in original order.
+
 ## Version 2.10-happeo-1
 _2022-11-01_  [GitHub Diff](https://github.com/google/gson/compare/gson-parent-2.10...gson-parent-2.10-happeo-1)
 
