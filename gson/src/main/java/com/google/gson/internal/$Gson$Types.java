@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2021-2022 Happeo Oy. Copyright (C) 2008 Google Inc.
+ * Copyright (C) 2021-2022 Happeo Oy.
+ * Copyright (C) 2008 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,6 +138,8 @@ public final class $Gson$Types {
     } else if (type instanceof ParameterizedType) {
       ParameterizedType parameterizedType = (ParameterizedType) type;
 
+      // getRawType() returns Type instead of Class; that seems to be an API mistake,
+      // see https://bugs.openjdk.org/browse/JDK-8250659
       Type rawType = parameterizedType.getRawType();
       return getRawType(rawType);
 

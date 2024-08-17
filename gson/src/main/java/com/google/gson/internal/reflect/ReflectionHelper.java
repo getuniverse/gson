@@ -32,11 +32,11 @@ import java.lang.reflect.Modifier;
 
 public class ReflectionHelper {
 
-  private ReflectionHelper() {}
-
   private static final MethodHandle trySetAccessible = getTrySetAccessibleMethod();
 
-  private static String getInaccessibleTroubleshootingSuffix(Throwable e) {
+  private ReflectionHelper() {}
+
+  private static String getInaccessibleTroubleshootingSuffix(Exception e) {
     // Class was added in Java 9, therefore cannot use instanceof
     if (e.getClass().getName().equals("java.lang.reflect.InaccessibleObjectException")) {
       String message = e.getMessage();
@@ -54,6 +54,7 @@ public class ReflectionHelper {
    * with descriptive message.
    *
    * @param ao member to make accessible
+   * @throws JsonIOException if making the object accessible fails
    */
   public static void makeAccessible(AccessibleObject ao) {
     try {
@@ -63,26 +64,31 @@ public class ReflectionHelper {
         // if trySetAccessible() is not available then neither is canAccess()
         ao.setAccessible(true);
       }
-    } catch (Throwable error) {
+    } catch (Error error) {
+      throw error;
+    } catch (Exception exception) {
+      String description = getAccessibleObjectDescription(ao, false);
       if (ao instanceof Constructor) {
-        Constructor<?> constructor = (Constructor<?>) ao;
         throw new JsonIOException(
-            "Failed making constructor '"
-                + constructorToString(constructor)
+            "Failed making "
+                + description
                 + "' accessible; either increase its visibility or write a custom InstanceCreator"
                 + " or TypeAdapter for its declaring type: "
-                + error.getMessage()
-                + getInaccessibleTroubleshootingSuffix(error));
+                // Include the message since it might contain more detailed information
+                + exception.getMessage()
+                + getInaccessibleTroubleshootingSuffix(exception));
       } else {
-        String description = getAccessibleObjectDescription(ao, false);
         throw new JsonIOException(
             "Failed making "
                 + description
                 + " accessible; either increase its visibility"
                 + " or write a custom TypeAdapter for its declaring type."
-                + getInaccessibleTroubleshootingSuffix(error),
-            error);
+                + getInaccessibleTroubleshootingSuffix(exception),
+            exception);
       }
+    } catch (Throwable error) {
+      String description = getAccessibleObjectDescription(ao, false);
+      throw new JsonIOException("Failed making " + description + " accessibl.", error);
     }
   }
 

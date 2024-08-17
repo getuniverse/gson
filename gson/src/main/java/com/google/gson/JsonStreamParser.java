@@ -88,7 +88,11 @@ public final class JsonStreamParser implements Iterator<JsonElement> {
       throw new NoSuchElementException();
     }
 
-    return Streams.parse(parser);
+    try {
+      return Streams.parse(parser);
+    } catch (StackOverflowError e) {
+      throw new JsonParseException("Failed parsing JSON source to Json", e);
+    }
   }
 
   /**

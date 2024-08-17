@@ -157,7 +157,7 @@ public final class JsonArrayTest {
       jsonArray.get(-1);
       fail("expected get to fail");
     } catch (IndexOutOfBoundsException e) {
-      assertThat(e).hasMessageThat().contains("-1");
+      assertThat(e).hasMessageThat().isEqualTo("Index -1 out of bounds for length 1");
     }
     try {
       jsonArray.getAsString();

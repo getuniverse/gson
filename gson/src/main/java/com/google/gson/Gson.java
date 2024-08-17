@@ -961,7 +961,7 @@ public final class Gson {
       throw new JsonIOException(e);
     } catch (InvalidStateException e) {
       throw new InvalidStateException(
-          "AssertionError (GSON " + GsonBuildConfig.VERSION + "): " + e.getMessage(), e);
+          "InvalidStateException (GSON " + GsonBuildConfig.VERSION + "): " + e.getMessage(), e);
     } finally {
       writer.setStrictness(oldStrictness);
       writer.setHtmlSafe(oldHtmlSafe);
@@ -1040,7 +1040,7 @@ public final class Gson {
       throw new JsonIOException(e);
     } catch (InvalidStateException e) {
       throw new InvalidStateException(
-          "AssertionError (GSON " + GsonBuildConfig.VERSION + "): " + e.getMessage(), e);
+          "InvalidStateException (GSON " + GsonBuildConfig.VERSION + "): " + e.getMessage(), e);
     } finally {
       writer.setStrictness(oldStrictness);
       writer.setHtmlSafe(oldHtmlSafe);
@@ -1390,7 +1390,7 @@ public final class Gson {
       throw new JsonSyntaxException(e);
     } catch (InvalidStateException e) {
       throw new InvalidStateException(
-          "AssertionError (GSON " + GsonBuildConfig.VERSION + "): " + e.getMessage(), e);
+          "InvalidStateException (GSON " + GsonBuildConfig.VERSION + "): " + e.getMessage(), e);
     } finally {
       reader.setStrictness(oldStrictness);
     }

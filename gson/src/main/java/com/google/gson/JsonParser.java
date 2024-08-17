@@ -147,6 +147,8 @@ public final class JsonParser {
     }
     try {
       return Streams.parse(reader);
+    } catch (StackOverflowError e) {
+      throw new JsonParseException("Failed parsing JSON source: " + reader + " to Json", e);
     } finally {
       reader.setStrictness(strictness);
     }
