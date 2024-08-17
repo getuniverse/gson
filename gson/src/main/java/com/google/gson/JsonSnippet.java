@@ -35,7 +35,7 @@ import java.util.function.Supplier;
  * partial JSON text was previously saved, to an object mapped to JSON and returned as a
  * representation of resource state.
  *
- * <h3>Usage</h3>
+ * <h2>Usage</h2>
  *
  * Define client-controlled JSON snippets as {@code JsonSnippet} fields:
  *
