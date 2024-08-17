@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 
+@SuppressWarnings("MemberName")
 public final class JavaRecordTest {
 
   private static final Gson GSON =

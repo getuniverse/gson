@@ -42,6 +42,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 /** Java record related utilities. */
+@SuppressWarnings("MemberName")
 public final class Records {
 
   private static final MethodHandles.Lookup METHODS = MethodHandles.lookup();
@@ -151,6 +152,10 @@ public final class Records {
     GET_GENERIC_TYPE = getGenericType;
     GET_TYPE = getType;
     GET_ACCESSOR = getAccessor;
+  }
+
+  private Records() {
+    throw new UnsupportedOperationException();
   }
 
   public static boolean isRecord(final Class<?> _class) {

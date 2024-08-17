@@ -180,8 +180,7 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
           checkAccessible(source, field);
         }
 
-        Object fieldValue;
-        fieldValue = field.get(source);
+        Object fieldValue = field.get(source);
         if (fieldValue == source) {
           // avoid direct recursion
           return;

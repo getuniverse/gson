@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 
-@SuppressWarnings("RedundantThrows")
+@SuppressWarnings({"RedundantThrows", "MemberName"})
 public final class JsonSnippetTest {
 
   private static final Gson GSON =
@@ -159,7 +159,9 @@ public final class JsonSnippetTest {
     assertNull(JsonSnippet.get(r1.r2.d));
   }
 
+  @SuppressWarnings("ClassNamedLikeTypeParameter")
   public record R1(String x, JsonSnippet d, long y, R2 r2) {}
 
+  @SuppressWarnings("ClassNamedLikeTypeParameter")
   public record R2(String a, JsonSnippet d, long b) {}
 }

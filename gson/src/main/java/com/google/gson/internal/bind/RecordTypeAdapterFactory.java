@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 
 /** Type adapter that reflects over the fields and methods of a class. */
+@SuppressWarnings("MemberName")
 public final class RecordTypeAdapterFactory implements TypeAdapterFactory {
 
   private final ConstructorConstructor constructorConstructor;
