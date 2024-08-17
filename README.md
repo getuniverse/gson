@@ -28,7 +28,17 @@ Notes:
 Release process:
 1. Make local snapshot build: `mvn clean install -pl 'gson' -am -Dproguard.skip -Dbuildinfo.attach=false`
 1. Smoke test local snapshot with larger backend services
-1. **TODO**
+1. `git checkout master && g merge --ff-only <branch>`
+1. `RELEASE_VERSION=<gson version>-happeo-<revision>`
+1. `DEVELOPMENT_VERSION=<gson version>-happeo-<revision + 1>-SNAPSHOT`
+1. `RELEASE_TAG=gson-parent-${RELEASE_VERSION}`
+1. `mvn versions:set -DnewVersion="${RELEASE_VERSION}" -DgenerateBackupPoms=false -DupdateMatchingVersions=false`
+1. `git commit -qam "[RELEASE] ${RELEASE_VERSION} released"`
+1. `git tag -afm "[RELEASE] ${RELEASE_VERSION}" "${RELEASE_TAG}"`
+1. `mvn clean deploy -pl 'gson' -am -DskipTests -Dproguard.skip -Dbuildinfo.attach=false -Dinternal.repository.url.base=...`
+1. `mvn versions:set -DnewVersion="${DEVELOPMENT_VERSION}" -DgenerateBackupPoms=false -DupdateMatchingVersions=false`
+1. `git commit -qam "[RELEASE] ${DEVELOPMENT_VERSION} prepared"`
+1. `git push --follow-tags origin`
 
 ## Goals
   * Provide simple `toJson()` and `fromJson()` methods to convert Java objects to JSON and vice-versa
