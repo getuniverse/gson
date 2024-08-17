@@ -23,25 +23,29 @@ Notes:
 * We only release the main `gson` module, nothing else.
 * We release the source JAR along with code, so no need for a separate JavaDoc JAR.
 * We rely on internal Maven repository to provide reasonable degree of build reproducibility.
-* We keep up to date with upstream manually, commit by commit. No, it's not smart.
+* We keep up to date with upstream manually, commit by commit, then full merge.
 * Tests use Java 17 to run Java record tests while the main code is Java 8 compatible.
 * IntelliJ can't handle different JDK version for tests vs. production code, so you can't run e.g. Java record tests in IntelliJ.
 * Our Java record support is based on code originally submitted to all major JSON library maintainers by the OpenJDK community(?), which predates the official support and had better support for parmeterized types but leads to major merge conflicts. Trade-offs...
 
-Release process:
+Release process, which assumes updates have been applied to a separate branch:
 1. Make local snapshot build: `mvn clean install -pl 'gson' -am -Dproguard.skip -Dbuildinfo.attach=false`
 1. Smoke test local snapshot with larger backend services
-1. `git checkout master && g merge --ff-only <branch>`
-1. `RELEASE_VERSION=<gson version>-happeo-<revision>`
-1. `DEVELOPMENT_VERSION=<gson version>-happeo-<revision + 1>-SNAPSHOT`
-1. `RELEASE_TAG=gson-parent-${RELEASE_VERSION}`
-1. `mvn versions:set -DnewVersion="${RELEASE_VERSION}" -DgenerateBackupPoms=false -DupdateMatchingVersions=false`
-1. `git commit -qam "[RELEASE] ${RELEASE_VERSION} released"`
-1. `git tag -afm "[RELEASE] ${RELEASE_VERSION}" "${RELEASE_TAG}"`
-1. `mvn clean deploy -pl 'gson' -am -DskipTests -Dproguard.skip -Dbuildinfo.attach=false -Dinternal.repository.url.base=...`
-1. `mvn versions:set -DnewVersion="${DEVELOPMENT_VERSION}" -DgenerateBackupPoms=false -DupdateMatchingVersions=false`
-1. `git commit -qam "[RELEASE] ${DEVELOPMENT_VERSION} prepared"`
-1. `git push --follow-tags origin`
+1. Merge to the main branch: `git checkout master && g merge --ff-only <branch>`
+1. Specify the release version: `RELEASE_VERSION=<gson version>-happeo-<revision>`
+1. Specify the next snapshot version: `DEVELOPMENT_VERSION=<gson version>-happeo-<revision + 1>-SNAPSHOT`
+1. Specify the release tag: `RELEASE_TAG=gson-parent-${RELEASE_VERSION}`
+1. Update the POM files to the release version: `mvn versions:set -DnewVersion="${RELEASE_VERSION}" -DgenerateBackupPoms=false -DupdateMatchingVersions=false`
+1. Verify the build: `mvn clean verify -pl 'gson' -am -Dproguard.skip`
+1. Commit the updated versions: `git commit -qam "[RELEASE] ${RELEASE_VERSION} released"`
+1. Tag the release: `git tag -afm "[RELEASE] ${RELEASE_VERSION}" "${RELEASE_TAG}"`
+1. Update the POM files to the next snapshot version: `mvn versions:set -DnewVersion="${DEVELOPMENT_VERSION}" -DgenerateBackupPoms=false -DupdateMatchingVersions=false`
+1. Verify the build: `mvn clean verify -pl 'gson' -am -Dproguard.skip`
+1. Commit the updated versions: `git commit -qam "[RELEASE] ${DEVELOPMENT_VERSION} prepared"`
+1. Push the updates to our fork: `git push --follow-tags origin`
+1. Checkout the release tag: `git checkout ${RELEASE_TAG}`
+1. Deploy the release: `mvn clean deploy -pl 'gson' -am -DskipTests -Dproguard.skip -Dbuildinfo.attach=false -Dinternal.repository.url.base=...`
+1. Checkout the main branch: `git checkout master`
 
 ## Goals
   * Provide simple `toJson()` and `fromJson()` methods to convert Java objects to JSON and vice-versa
