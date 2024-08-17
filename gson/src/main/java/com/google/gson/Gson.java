@@ -174,8 +174,6 @@ public final class Gson {
    */
   @SuppressWarnings("ThreadLocalUsage")
   private final ThreadLocal<Map<TypeToken<?>, TypeAdapter<?>>> threadLocalAdapterResults = new ThreadLocal<>();
-  private final ThreadLocal<Map<TypeToken<?>, TypeAdapter<?>>> calls
-      = new ThreadLocal<>();
 
   private final ConcurrentMap<TypeToken<?>, TypeAdapter<?>> typeTokenCache = new ConcurrentHashMap<>();
 

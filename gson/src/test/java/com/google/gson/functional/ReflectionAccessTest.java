@@ -23,19 +23,11 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
-import com.google.gson.TypeAdapter;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
-import java.io.IOException;
-import java.lang.reflect.ReflectPermission;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.security.Permission;
+
 import java.util.Collections;
-import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.junit.Test;
 
 public class ReflectionAccessTest {
@@ -45,12 +37,6 @@ public class ReflectionAccessTest {
 
     private ClassWithPrivateMembers() {
     }
-  }
-
-  private static Class<?> loadClassWithDifferentClassLoader(Class<?> c) throws Exception {
-    URL url = c.getProtectionDomain().getCodeSource().getLocation();
-    URLClassLoader classLoader = new URLClassLoader(new URL[] { url }, null);
-    return classLoader.loadClass(c.getName());
   }
 
   /**

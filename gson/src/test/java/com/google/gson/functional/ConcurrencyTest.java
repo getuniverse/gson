@@ -149,6 +149,7 @@ public class ConcurrencyTest {
 
       for (int j = 0; j < threads; j++) {
         executor.execute(new Runnable() {
+          @Override
           public void run() {
             try {
               startLatch.await();
@@ -185,6 +186,7 @@ public class ConcurrencyTest {
     }
   }
 
+  @SuppressWarnings("unused")
   private static class MyRecursiveObject {
     MyNestedObject obj;
 
