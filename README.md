@@ -5,11 +5,30 @@ Gson can work with arbitrary Java objects including pre-existing objects that yo
 
 There are a few open-source projects that can convert Java objects to JSON. However, most of them require that you place Java annotations in your classes; something that you can not do if you do not have access to the source-code. Most also do not fully support the use of Java Generics. Gson considers both of these as very important design goals.
 
-**NOTE**: this is a _fork_ of the official Gson code that fixes issues we at Happeo find important.
-
 > [!IMPORTANT]\
 > Gson's main focus is on Java. Using it with other JVM languages such as Kotlin or Scala might work fine in many cases, but language-specific features such as Kotlin's non-`null` types or constructors with default arguments are not supported. This can lead to confusing and incorrect behavior.\
 > When using languages other than Java, prefer a JSON library with explicit support for that language.
+
+## Happeo Fork
+
+This is a fork of the official Gson repository that fixes issues we at Happeo find important and allows us to add
+features we need.
+
+Notes:
+* Our fork requires Java 8+.
+* Our fork builds with Java 17+ without restriction.
+* We only release the main `gson` module, nothing else.
+* We release the source JAR along with code, so no need for a separate JavaDoc JAR.
+* We rely on internal Maven repository to provide reasonable degree of build reproducibility.
+* We keep up to date with upstream manually, commit by commit. No, it's not smart.
+* Tests use Java 17 to run Java record tests while the main code is Java 8 compatible.
+* IntelliJ can't handle different JDK version for tests vs. production code, so you can't run e.g. Java record tests in IntelliJ.
+* Our Java record support is based on code originally submitted to all major JSON library maintainers by the OpenJDK community(?), which predates the official support and had better support for parmeterized types but leads to major merge conflicts. Trade-offs...
+
+Release process:
+1. Make local snapshot build: `mvn clean install -pl 'gson' -am -Dproguard.skip -Dbuildinfo.attach=false`
+1. Smoke test local snapshot with larger backend services
+1. **TODO**
 
 ## Goals
   * Provide simple `toJson()` and `fromJson()` methods to convert Java objects to JSON and vice-versa
