@@ -46,6 +46,7 @@
     <!-- Make the build reproducible, see https://maven.apache.org/guides/mini/guide-reproducible-builds.html -->
     <!-- Automatically updated by Maven Release Plugin -->
     <project.build.outputTimestamp>2023-01-01T00:00:00Z</project.build.outputTimestamp>
+    <internal.repository.url.base>urn:happeo:repository:internal</internal.repository.url.base>
   </properties>
 
   <!-- These attributes specify that the URLs should be inherited by the modules as is, to avoid constructing
@@ -401,4 +402,16 @@
       </plugins>
     </pluginManagement>
   </build>
+  <distributionManagement>
+    <repository>
+      <id>central</id>
+      <name>happeo-releases</name>
+      <url>${internal.repository.url.base}/libs-release-local</url>
+    </repository>
+    <snapshotRepository>
+      <id>snapshots</id>
+      <name>happeo-snapshots</name>
+      <url>${internal.repository.url.base}/libs-snapshot-local</url>
+    </snapshotRepository>
+  </distributionManagement>
 </project>
