@@ -19,8 +19,6 @@
 
 package com.google.gson.internal;
 
-import java.util.Objects;
-
 /**
  * A simple utility class used to check method Preconditions.
  *

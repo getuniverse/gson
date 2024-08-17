@@ -19,16 +19,15 @@
 
 package com.google.gson.internal.reflect;
 
+import com.google.gson.JsonIOException;
+import com.google.gson.internal.GsonBuildConfig;
+import com.google.gson.internal.TroubleshootingGuide;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-
-import com.google.gson.JsonIOException;
-import com.google.gson.internal.GsonBuildConfig;
-import com.google.gson.internal.TroubleshootingGuide;
 
 public class ReflectionHelper {
 
@@ -50,8 +49,8 @@ public class ReflectionHelper {
   }
 
   /**
-   * Tries making the member accessible, wrapping any thrown exception in a
-   * {@link JsonIOException} with descriptive message.
+   * Tries making the member accessible, wrapping any thrown exception in a {@link JsonIOException}
+   * with descriptive message.
    *
    * @param ao member to make accessible
    */
@@ -59,7 +58,8 @@ public class ReflectionHelper {
     try {
       if (trySetAccessible != null) {
         trySetAccessible.invoke(ao);
-      } else if (!ao.isAccessible()) {  // if trySetAccessible() is not available then neither is canAccess()
+      } else if (!ao.isAccessible()) {
+        // if trySetAccessible() is not available then neither is canAccess()
         ao.setAccessible(true);
       }
     } catch (Throwable error) {
@@ -67,15 +67,18 @@ public class ReflectionHelper {
         Constructor<?> constructor = (Constructor<?>) ao;
         throw new JsonIOException(
             "Failed making constructor '"
-                + constructorToString(constructor) + "' accessible;"
-                + " either increase its visibility or write a custom InstanceCreator or TypeAdapter for"
+                + constructorToString(constructor)
+                + "' accessible; either increase its visibility or write a custom InstanceCreator"
+                + " or TypeAdapter for"
                 // Include the message since it might contain more detailed information
-                + " its declaring type: " + error.getMessage()
+                + " its declaring type: "
+                + error.getMessage()
                 + getInaccessibleTroubleshootingSuffix(error));
       } else {
         String description = getAccessibleObjectDescription(ao, false);
         throw new JsonIOException(
-            "Failed making " + description
+            "Failed making "
+                + description
                 + " accessible; either increase its visibility"
                 + " or write a custom TypeAdapter for its declaring type."
                 + getInaccessibleTroubleshootingSuffix(error),
@@ -157,8 +160,7 @@ public class ReflectionHelper {
    * Tries making the member accessible
    *
    * @param ao member to make accessible
-   * @return exception message; {@code null} if successful, non-{@code null} if
-   *    unsuccessful
+   * @return exception message; {@code null} if successful, non-{@code null} if unsuccessful
    */
   public static String tryMakeAccessible(AccessibleObject ao) {
     try {

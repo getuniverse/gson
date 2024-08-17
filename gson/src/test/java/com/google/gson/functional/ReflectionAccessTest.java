@@ -20,14 +20,11 @@
 package com.google.gson.functional;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.fail;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
-
 import java.util.Collections;
-
 import org.junit.Test;
 
 public class ReflectionAccessTest {

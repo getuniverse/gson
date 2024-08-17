@@ -43,15 +43,15 @@ import java.util.Map;
 public final class JsonTreeReader extends JsonReader {
   private static final Reader UNREADABLE_READER =
       new Reader() {
-          @Override
-          public int read(char[] buffer, int offset, int count) {
-              throw new InvalidStateException();
-          }
+        @Override
+        public int read(char[] buffer, int offset, int count) {
+          throw new InvalidStateException();
+        }
 
-          @Override
-          public void close() {
-              throw new InvalidStateException();
-          }
+        @Override
+        public void close() {
+          throw new InvalidStateException();
+        }
       };
   private static final Object SENTINEL_CLOSED = new Object();
 

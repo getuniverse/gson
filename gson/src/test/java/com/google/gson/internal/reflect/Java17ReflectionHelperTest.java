@@ -21,12 +21,11 @@ package com.google.gson.internal.reflect;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.gson.internal.bind.util.Records;
 import java.nio.file.attribute.GroupPrincipal;
 import java.nio.file.attribute.UserPrincipal;
 import java.util.Objects;
 import org.junit.Test;
-
-import com.google.gson.internal.bind.util.Records;
 
 public class Java17ReflectionHelperTest {
   @Test

@@ -36,20 +36,23 @@ import java.util.Objects;
 /** This writer creates a JsonElement. */
 public final class JsonTreeWriter extends JsonWriter {
   private static final Writer UNWRITABLE_WRITER =
-          new Writer() {
-              @Override
-              public void write(char[] buffer, int offset, int counter) {
-                  throw new InvalidStateException();
-              }
-              @Override
-              public void flush() {
-                  throw new InvalidStateException();
-              }
-              @Override
-              public void close() {
-                  throw new InvalidStateException();
-              }
-          };
+      new Writer() {
+        @Override
+        public void write(char[] buffer, int offset, int counter) {
+          throw new InvalidStateException();
+        }
+
+        @Override
+        public void flush() {
+          throw new InvalidStateException();
+        }
+
+        @Override
+        public void close() {
+          throw new InvalidStateException();
+        }
+      };
+
   /** Added to the top of the stack when this writer is closed to cause following ops to fail. */
   private static final JsonPrimitive SENTINEL_CLOSED = new JsonPrimitive("closed");
 

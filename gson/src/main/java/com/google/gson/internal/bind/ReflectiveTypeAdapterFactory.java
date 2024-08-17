@@ -338,7 +338,10 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
     abstract void write(JsonWriter writer, Object source)
         throws IOException, IllegalAccessException;
 
-    /** Read the value from the reader, and set it on the corresponding field on target via reflection */
+    /**
+     * Read the value from the reader, and set it on the corresponding field on target via
+     * reflection
+     */
     abstract void readIntoField(JsonReader reader, Object target)
         throws IOException, IllegalAccessException;
   }
@@ -346,9 +349,10 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
   /**
    * Base class for Adapters produced by this factory.
    *
-   * <p>This class encapsulates the common logic for serialization and deserialization. During deserialization,
-   * we construct an accumulator A, which we use to accumulate values from the source JSON. After the object has been
-   * read in full, the {@link #finalize(Object)} method is used to convert the accumulator to an instance of T.
+   * <p>This class encapsulates the common logic for serialization and deserialization. During
+   * deserialization, we construct an accumulator A, which we use to accumulate values from the
+   * source JSON. After the object has been read in full, the {@link #finalize(Object)} method is
+   * used to convert the accumulator to an instance of T.
    *
    * @param <T> type of objects that this Adapter creates.
    * @param <A> type of accumulator used to build the deserialization result.

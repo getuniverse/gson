@@ -20,15 +20,13 @@ package com.google.gson.functional;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.gson.Gson;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.junit.Before;
 import org.junit.Test;
-
-import com.google.gson.Gson;
 
 /**
  * Tests for ensuring Gson thread-safety.
@@ -180,5 +178,4 @@ public class ConcurrencyTest {
       }
     }
   }
-
 }

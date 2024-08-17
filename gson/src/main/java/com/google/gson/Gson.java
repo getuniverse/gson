@@ -401,8 +401,8 @@ public final class Gson {
             excluder,
             jsonAdapterFactory,
             reflectionFilters));
-    factories.add(TypeAdapters.newFactory(TypeToken.get(JsonSnippet.class),
-                                          new JsonSnippetTypeAdapter()));
+    factories.add(
+        TypeAdapters.newFactory(TypeToken.get(JsonSnippet.class), new JsonSnippetTypeAdapter()));
     factories.add(
         new ReflectiveTypeAdapterFactory(
             constructorConstructor,
