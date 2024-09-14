@@ -15,10 +15,8 @@
  */
 package com.google.gson;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertThrows;
 
 import java.io.EOFException;
 import java.util.NoSuchElementException;
@@ -41,90 +39,67 @@ public class JsonStreamParserTest {
   @Test
   public void testParseTwoStrings() {
     String actualOne = parser.next().getAsString();
-    assertEquals("one", actualOne);
+    assertThat(actualOne).isEqualTo("one");
     String actualTwo = parser.next().getAsString();
-    assertEquals("two", actualTwo);
+    assertThat(actualTwo).isEqualTo("two");
   }
 
   @Test
   public void testIterator() {
-    assertTrue(parser.hasNext());
-    assertEquals("one", parser.next().getAsString());
-    assertTrue(parser.hasNext());
-    assertEquals("two", parser.next().getAsString());
-    assertFalse(parser.hasNext());
+    assertThat(parser.hasNext()).isTrue();
+    assertThat(parser.next().getAsString()).isEqualTo("one");
+    assertThat(parser.hasNext()).isTrue();
+    assertThat(parser.next().getAsString()).isEqualTo("two");
+    assertThat(parser.hasNext()).isFalse();
   }
 
   @Test
-  public void testNoSideEffectForHasNext() throws Exception {
-    assertTrue(parser.hasNext());
-    assertTrue(parser.hasNext());
-    assertTrue(parser.hasNext());
-    assertEquals("one", parser.next().getAsString());
+  public void testNoSideEffectForHasNext() {
+    assertThat(parser.hasNext()).isTrue();
+    assertThat(parser.hasNext()).isTrue();
+    assertThat(parser.hasNext()).isTrue();
+    assertThat(parser.next().getAsString()).isEqualTo("one");
 
-    assertTrue(parser.hasNext());
-    assertTrue(parser.hasNext());
-    assertEquals("two", parser.next().getAsString());
+    assertThat(parser.hasNext()).isTrue();
+    assertThat(parser.hasNext()).isTrue();
+    assertThat(parser.next().getAsString()).isEqualTo("two");
 
-    assertFalse(parser.hasNext());
-    assertFalse(parser.hasNext());
+    assertThat(parser.hasNext()).isFalse();
+    assertThat(parser.hasNext()).isFalse();
   }
 
   @Test
   public void testCallingNextBeyondAvailableInput() {
-    parser.next();
-    parser.next();
-    try {
-      parser.next();
-      fail("Parser should not go beyond available input");
-    } catch (NoSuchElementException expected) {
-    }
+    JsonElement unused1 = parser.next();
+    JsonElement unused2 = parser.next();
+    // Parser should not go beyond available input
+    assertThrows(NoSuchElementException.class, parser::next);
   }
 
   @Test
   public void testEmptyInput() {
     JsonStreamParser parser = new JsonStreamParser("");
-    try {
-      parser.next();
-      fail();
-    } catch (JsonIOException e) {
-      assertTrue(e.getCause() instanceof EOFException);
-    }
+    JsonIOException e = assertThrows(JsonIOException.class, parser::next);
+    assertThat(e).hasCauseThat().isInstanceOf(EOFException.class);
 
     parser = new JsonStreamParser("");
-    try {
-      parser.hasNext();
-      fail();
-    } catch (JsonIOException e) {
-      assertTrue(e.getCause() instanceof EOFException);
-    }
+    e = assertThrows(JsonIOException.class, parser::hasNext);
+    assertThat(e).hasCauseThat().isInstanceOf(EOFException.class);
   }
 
   @Test
   public void testIncompleteInput() {
     JsonStreamParser parser = new JsonStreamParser("[");
-    assertTrue(parser.hasNext());
-    try {
-      parser.next();
-      fail();
-    } catch (JsonSyntaxException e) {
-    }
+    assertThat(parser.hasNext()).isTrue();
+    assertThrows(JsonSyntaxException.class, parser::next);
   }
 
   @Test
   public void testMalformedInput() {
     JsonStreamParser parser = new JsonStreamParser(":");
-    try {
-      parser.hasNext();
-      fail();
-    } catch (JsonSyntaxException e) {
-    }
+    assertThrows(JsonSyntaxException.class, parser::hasNext);
 
     parser = new JsonStreamParser(":");
-    try {
-      parser.next();
-      fail();
-    } catch (JsonSyntaxException e) {
-    }
+    assertThrows(JsonSyntaxException.class, parser::next);
   }
 }

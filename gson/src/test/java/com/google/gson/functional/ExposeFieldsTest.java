@@ -16,11 +16,9 @@
 
 package com.google.gson.functional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static com.google.common.truth.Truth.assertThat;
 
+import com.google.errorprone.annotations.Keep;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.InstanceCreator;
@@ -40,97 +38,110 @@ public class ExposeFieldsTest {
 
   @Before
   public void setUp() throws Exception {
-    gson = new GsonBuilder()
-        .excludeFieldsWithoutExposeAnnotation()
-        .registerTypeAdapter(SomeInterface.class, new SomeInterfaceInstanceCreator())
-        .create();
+    gson =
+        new GsonBuilder()
+            .excludeFieldsWithoutExposeAnnotation()
+            .registerTypeAdapter(SomeInterface.class, new SomeInterfaceInstanceCreator())
+            .create();
   }
 
   @Test
-  public void testNullExposeFieldSerialization() throws Exception {
+  public void testNullExposeFieldSerialization() {
     ClassWithExposedFields object = new ClassWithExposedFields(null, 1);
     String json = gson.toJson(object);
 
-    assertEquals(object.getExpectedJson(), json);
+    assertThat(json).isEqualTo(object.getExpectedJson());
   }
 
   @Test
-  public void testArrayWithOneNullExposeFieldObjectSerialization() throws Exception {
+  public void testArrayWithOneNullExposeFieldObjectSerialization() {
     ClassWithExposedFields object1 = new ClassWithExposedFields(1, 1);
     ClassWithExposedFields object2 = new ClassWithExposedFields(null, 1);
     ClassWithExposedFields object3 = new ClassWithExposedFields(2, 2);
-    ClassWithExposedFields[] objects = { object1, object2, object3 };
+    ClassWithExposedFields[] objects = {object1, object2, object3};
 
     String json = gson.toJson(objects);
-    String expected = new StringBuilder()
-        .append('[').append(object1.getExpectedJson()).append(',')
-        .append(object2.getExpectedJson()).append(',')
-        .append(object3.getExpectedJson()).append(']')
-        .toString();
+    String expected =
+        '['
+            + object1.getExpectedJson()
+            + ','
+            + object2.getExpectedJson()
+            + ','
+            + object3.getExpectedJson()
+            + ']';
 
-    assertEquals(expected, json);
+    assertThat(json).isEqualTo(expected);
   }
 
   @Test
-  public void testExposeAnnotationSerialization() throws Exception {
+  public void testExposeAnnotationSerialization() {
     ClassWithExposedFields target = new ClassWithExposedFields(1, 2);
-    assertEquals(target.getExpectedJson(), gson.toJson(target));
+    assertThat(gson.toJson(target)).isEqualTo(target.getExpectedJson());
   }
 
   @Test
-  public void testExposeAnnotationDeserialization() throws Exception {
+  public void testExposeAnnotationDeserialization() {
     String json = "{a:3,b:4,d:20.0}";
     ClassWithExposedFields target = gson.fromJson(json, ClassWithExposedFields.class);
 
-    assertEquals(3, (int) target.a);
-    assertNull(target.b);
-    assertFalse(target.d == 20);
+    assertThat(target.a).isEqualTo(3);
+    assertThat(target.b).isNull();
+    assertThat(target.d).isNotEqualTo(20);
   }
 
   @Test
-  public void testNoExposedFieldSerialization() throws Exception {
+  public void testNoExposedFieldSerialization() {
     ClassWithNoExposedFields obj = new ClassWithNoExposedFields();
     String json = gson.toJson(obj);
 
-    assertEquals("{}", json);
+    assertThat(json).isEqualTo("{}");
   }
 
   @Test
-  public void testNoExposedFieldDeserialization() throws Exception {
+  public void testNoExposedFieldDeserialization() {
     String json = "{a:4,b:5}";
     ClassWithNoExposedFields obj = gson.fromJson(json, ClassWithNoExposedFields.class);
 
-    assertEquals(0, obj.a);
-    assertEquals(1, obj.b);
+    assertThat(obj.a).isEqualTo(0);
+    assertThat(obj.b).isEqualTo(1);
   }
-  
+
   @Test
-  public void testExposedInterfaceFieldSerialization() throws Exception {
+  public void testExposedInterfaceFieldSerialization() {
     String expected = "{\"interfaceField\":{}}";
     ClassWithInterfaceField target = new ClassWithInterfaceField(new SomeObject());
     String actual = gson.toJson(target);
-    
-    assertEquals(expected, actual);
+
+    assertThat(actual).isEqualTo(expected);
   }
-  
+
   @Test
-  public void testExposedInterfaceFieldDeserialization() throws Exception {
+  public void testExposedInterfaceFieldDeserialization() {
     String json = "{\"interfaceField\":{}}";
     ClassWithInterfaceField obj = gson.fromJson(json, ClassWithInterfaceField.class);
 
-    assertNotNull(obj.interfaceField);
+    assertThat(obj.interfaceField).isNotNull();
   }
 
   private static class ClassWithExposedFields {
     @Expose private final Integer a;
     private final Integer b;
-    @Expose(serialize = false) final long c;
-    @Expose(deserialize = false) final double d;
-    @Expose(serialize = false, deserialize = false) final char e;
+
+    @Expose(serialize = false)
+    @Keep
+    final long c;
+
+    @Expose(deserialize = false)
+    final double d;
+
+    @Expose(serialize = false, deserialize = false)
+    @Keep
+    final char e;
 
     public ClassWithExposedFields(Integer a, Integer b) {
       this(a, b, 1L, 2.0, 'a');
     }
+
     public ClassWithExposedFields(Integer a, Integer b, long c, double d, char e) {
       this.a = a;
       this.b = b;
@@ -154,27 +165,27 @@ public class ExposeFieldsTest {
     private final int a = 0;
     private final int b = 1;
   }
-  
+
   private static interface SomeInterface {
     // Empty interface
   }
-  
+
   private static class SomeObject implements SomeInterface {
     // Do nothing
   }
-  
+
   private static class SomeInterfaceInstanceCreator implements InstanceCreator<SomeInterface> {
-    @Override public SomeInterface createInstance(Type type) {
+    @Override
+    public SomeInterface createInstance(Type type) {
       return new SomeObject();
     }
   }
-  
+
   private static class ClassWithInterfaceField {
-    @Expose
-    private final SomeInterface interfaceField;
+    @Expose private final SomeInterface interfaceField;
 
     public ClassWithInterfaceField(SomeInterface interfaceField) {
       this.interfaceField = interfaceField;
     }
-  }  
+  }
 }

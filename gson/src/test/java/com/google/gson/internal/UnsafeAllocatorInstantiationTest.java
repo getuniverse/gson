@@ -15,61 +15,50 @@
  */
 package com.google.gson.internal;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertThrows;
 
 import org.junit.Test;
 
 /**
  * Test unsafe allocator instantiation
+ *
  * @author Ugljesa Jovanovic
  */
 public final class UnsafeAllocatorInstantiationTest {
 
-  public interface Interface {
-  }
+  public interface Interface {}
 
-  public static abstract class AbstractClass {
-  }
+  public abstract static class AbstractClass {}
 
-  public static class ConcreteClass {
+  public static class ConcreteClass {}
+
+  /** Ensure that an {@link AssertionError} is thrown when trying to instantiate an interface */
+  @Test
+  public void testInterfaceInstantiation() {
+    AssertionError e =
+        assertThrows(
+            AssertionError.class, () -> UnsafeAllocator.INSTANCE.newInstance(Interface.class));
+
+    assertThat(e).hasMessageThat().startsWith("UnsafeAllocator is used for non-instantiable type");
   }
 
   /**
-   * Ensure that an {@link AssertionError} is thrown when trying
-   * to instantiate an interface
+   * Ensure that an {@link AssertionError} is thrown when trying to instantiate an abstract class
    */
   @Test
-  public void testInterfaceInstantiation() throws Exception {
-    try {
-      UnsafeAllocator.INSTANCE.newInstance(Interface.class);
-      fail();
-    } catch (AssertionError e) {
-      assertTrue(e.getMessage().startsWith("UnsafeAllocator is used for non-instantiable type"));
-    }
+  public void testAbstractClassInstantiation() {
+    AssertionError e =
+        assertThrows(
+            AssertionError.class, () -> UnsafeAllocator.INSTANCE.newInstance(AbstractClass.class));
+
+    assertThat(e).hasMessageThat().startsWith("UnsafeAllocator is used for non-instantiable type");
   }
 
-  /**
-   * Ensure that an {@link AssertionError} is thrown when trying
-   * to instantiate an abstract class
-   */
-  @Test
-  public void testAbstractClassInstantiation() throws Exception {
-    try {
-      UnsafeAllocator.INSTANCE.newInstance(AbstractClass.class);
-      fail();
-    } catch (AssertionError e) {
-      assertTrue(e.getMessage().startsWith("UnsafeAllocator is used for non-instantiable type"));
-    }
-  }
-
-  /**
-   * Ensure that no exception is thrown when trying to instantiate a concrete class
-   */
+  /** Ensure that no exception is thrown when trying to instantiate a concrete class */
   @Test
   public void testConcreteClassInstantiation() throws Exception {
     ConcreteClass instance = UnsafeAllocator.INSTANCE.newInstance(ConcreteClass.class);
-    assertNotNull(instance);
+    assertThat(instance).isNotNull();
   }
 }

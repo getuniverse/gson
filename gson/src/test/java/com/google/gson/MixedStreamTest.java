@@ -16,9 +16,7 @@
 
 package com.google.gson;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
 import com.google.gson.reflect.TypeToken;
@@ -37,20 +35,21 @@ public final class MixedStreamTest {
   private static final Car BLUE_MUSTANG = new Car("mustang", 0x0000FF);
   private static final Car BLACK_BMW = new Car("bmw", 0x000000);
   private static final Car RED_MIATA = new Car("miata", 0xFF0000);
-  private static final String CARS_JSON = "[\n"
-      + "  {\n"
-      + "    \"name\": \"mustang\",\n"
-      + "    \"color\": 255\n"
-      + "  },\n"
-      + "  {\n"
-      + "    \"name\": \"bmw\",\n"
-      + "    \"color\": 0\n"
-      + "  },\n"
-      + "  {\n"
-      + "    \"name\": \"miata\",\n"
-      + "    \"color\": 16711680\n"
-      + "  }\n"
-      + "]";
+  private static final String CARS_JSON =
+      "[\n"
+          + "  {\n"
+          + "    \"name\": \"mustang\",\n"
+          + "    \"color\": 255\n"
+          + "  },\n"
+          + "  {\n"
+          + "    \"name\": \"bmw\",\n"
+          + "    \"color\": 0\n"
+          + "  },\n"
+          + "  {\n"
+          + "    \"name\": \"miata\",\n"
+          + "    \"color\": 16711680\n"
+          + "  }\n"
+          + "]";
 
   @Test
   public void testWriteMixedStreamed() throws IOException {
@@ -65,7 +64,7 @@ public final class MixedStreamTest {
     gson.toJson(RED_MIATA, Car.class, jsonWriter);
     jsonWriter.endArray();
 
-    assertEquals(CARS_JSON, stringWriter.toString());
+    assertThat(stringWriter.toString()).isEqualTo(CARS_JSON);
   }
 
   @Test
@@ -75,12 +74,13 @@ public final class MixedStreamTest {
     JsonReader jsonReader = new JsonReader(stringReader);
 
     jsonReader.beginArray();
-    assertEquals(BLUE_MUSTANG, gson.fromJson(jsonReader, Car.class));
-    assertEquals(BLACK_BMW, gson.fromJson(jsonReader, Car.class));
-    assertEquals(RED_MIATA, gson.fromJson(jsonReader, Car.class));
+    assertThat(gson.<Car>fromJson(jsonReader, Car.class)).isEqualTo(BLUE_MUSTANG);
+    assertThat(gson.<Car>fromJson(jsonReader, Car.class)).isEqualTo(BLACK_BMW);
+    assertThat(gson.<Car>fromJson(jsonReader, Car.class)).isEqualTo(RED_MIATA);
     jsonReader.endArray();
   }
 
+  @SuppressWarnings("deprecation") // for JsonReader.setLenient
   @Test
   public void testReaderDoesNotMutateState() throws IOException {
     Gson gson = new Gson();
@@ -88,14 +88,15 @@ public final class MixedStreamTest {
     jsonReader.beginArray();
 
     jsonReader.setLenient(false);
-    gson.fromJson(jsonReader, Car.class);
-    assertFalse(jsonReader.isLenient());
+    Car unused1 = gson.fromJson(jsonReader, Car.class);
+    assertThat(jsonReader.isLenient()).isFalse();
 
     jsonReader.setLenient(true);
-    gson.fromJson(jsonReader, Car.class);
-    assertTrue(jsonReader.isLenient());
+    Car unused2 = gson.fromJson(jsonReader, Car.class);
+    assertThat(jsonReader.isLenient()).isTrue();
   }
 
+  @SuppressWarnings("deprecation") // for JsonWriter.setLenient
   @Test
   public void testWriteDoesNotMutateState() throws IOException {
     Gson gson = new Gson();
@@ -105,14 +106,14 @@ public final class MixedStreamTest {
     jsonWriter.setHtmlSafe(true);
     jsonWriter.setLenient(true);
     gson.toJson(BLUE_MUSTANG, Car.class, jsonWriter);
-    assertTrue(jsonWriter.isHtmlSafe());
-    assertTrue(jsonWriter.isLenient());
+    assertThat(jsonWriter.isHtmlSafe()).isTrue();
+    assertThat(jsonWriter.isLenient()).isTrue();
 
     jsonWriter.setHtmlSafe(false);
     jsonWriter.setLenient(false);
     gson.toJson(BLUE_MUSTANG, Car.class, jsonWriter);
-    assertFalse(jsonWriter.isHtmlSafe());
-    assertFalse(jsonWriter.isLenient());
+    assertThat(jsonWriter.isHtmlSafe()).isFalse();
+    assertThat(jsonWriter.isLenient()).isFalse();
   }
 
   @Test
@@ -177,7 +178,7 @@ public final class MixedStreamTest {
 
     StringWriter stringWriter = new StringWriter();
     gson.toJson(null, new JsonWriter(stringWriter));
-    assertEquals("null", stringWriter.toString());
+    assertThat(stringWriter.toString()).isEqualTo("null");
   }
 
   @Test
@@ -196,33 +197,40 @@ public final class MixedStreamTest {
   }
 
   @Test
-  public void testWriteHtmlSafe() {
+  public void testWriteHtmlSafeWithEscaping() {
     List<String> contents = Arrays.asList("<", ">", "&", "=", "'");
     Type type = new TypeToken<List<String>>() {}.getType();
 
     StringWriter writer = new StringWriter();
     new Gson().toJson(contents, type, new JsonWriter(writer));
-    assertEquals("[\"\\u003c\",\"\\u003e\",\"\\u0026\",\"\\u003d\",\"\\u0027\"]",
-        writer.toString());
+    assertThat(writer.toString())
+        .isEqualTo("[\"\\u003c\",\"\\u003e\",\"\\u0026\",\"\\u003d\",\"\\u0027\"]");
+  }
 
-    writer = new StringWriter();
-    new GsonBuilder().disableHtmlEscaping().create()
-        .toJson(contents, type, new JsonWriter(writer));
-    assertEquals("[\"<\",\">\",\"&\",\"=\",\"'\"]",
-        writer.toString());
+  @Test
+  public void testWriteHtmlSafeWithoutEscaping() {
+    List<String> contents = Arrays.asList("<", ">", "&", "=", "'");
+    Type type = new TypeToken<List<String>>() {}.getType();
+
+    StringWriter writer = new StringWriter();
+    new GsonBuilder().disableHtmlEscaping().create().toJson(contents, type, new JsonWriter(writer));
+    assertThat(writer.toString()).isEqualTo("[\"<\",\">\",\"&\",\"=\",\"'\"]");
   }
 
   @Test
   public void testWriteLenient() {
-    List<Double> doubles = Arrays.asList(Double.NaN, Double.NEGATIVE_INFINITY,
-        Double.POSITIVE_INFINITY, -0.0d, 0.5d, 0.0d);
+    List<Double> doubles =
+        Arrays.asList(
+            Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, -0.0d, 0.5d, 0.0d);
     Type type = new TypeToken<List<Double>>() {}.getType();
 
     StringWriter writer = new StringWriter();
     JsonWriter jsonWriter = new JsonWriter(writer);
-    new GsonBuilder().serializeSpecialFloatingPointValues().create()
+    new GsonBuilder()
+        .serializeSpecialFloatingPointValues()
+        .create()
         .toJson(doubles, type, jsonWriter);
-    assertEquals("[NaN,-Infinity,Infinity,-0.0,0.5,0.0]", writer.toString());
+    assertThat(writer.toString()).isEqualTo("[NaN,-Infinity,Infinity,-0.0,0.5,0.0]");
 
     try {
       new Gson().toJson(doubles, type, new JsonWriter(new StringWriter()));
@@ -243,14 +251,14 @@ public final class MixedStreamTest {
     // used by Gson
     Car() {}
 
-    @Override public int hashCode() {
+    @Override
+    public int hashCode() {
       return name.hashCode() ^ color;
     }
 
-    @Override public boolean equals(Object o) {
-      return o instanceof Car
-          && ((Car) o).name.equals(name)
-          && ((Car) o).color == color;
+    @Override
+    public boolean equals(Object o) {
+      return o instanceof Car && ((Car) o).name.equals(name) && ((Car) o).color == color;
     }
   }
 }

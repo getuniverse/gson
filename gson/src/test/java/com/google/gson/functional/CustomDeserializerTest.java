@@ -16,8 +16,7 @@
 
 package com.google.gson.functional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -33,8 +32,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Functional Test exercising custom deserialization only. When test applies to both
- * serialization and deserialization then add it to CustomTypeAdapterTest.
+ * Functional Test exercising custom deserialization only. When test applies to both serialization
+ * and deserialization then add it to CustomTypeAdapterTest.
  *
  * @author Joel Leitch
  */
@@ -46,25 +45,28 @@ public class CustomDeserializerTest {
 
   @Before
   public void setUp() throws Exception {
-    gson = new GsonBuilder().registerTypeAdapter(DataHolder.class, new DataHolderDeserializer()).create();
+    gson =
+        new GsonBuilder()
+            .registerTypeAdapter(DataHolder.class, new DataHolderDeserializer())
+            .create();
   }
 
   @Test
-  public void testDefaultConstructorNotCalledOnObject() throws Exception {
+  public void testDefaultConstructorNotCalledOnObject() {
     DataHolder data = new DataHolder(DEFAULT_VALUE);
     String json = gson.toJson(data);
 
     DataHolder actual = gson.fromJson(json, DataHolder.class);
-    assertEquals(DEFAULT_VALUE + SUFFIX, actual.getData());
+    assertThat(actual.getData()).isEqualTo(DEFAULT_VALUE + SUFFIX);
   }
 
   @Test
-  public void testDefaultConstructorNotCalledOnField() throws Exception {
+  public void testDefaultConstructorNotCalledOnField() {
     DataHolderWrapper dataWrapper = new DataHolderWrapper(new DataHolder(DEFAULT_VALUE));
     String json = gson.toJson(dataWrapper);
 
     DataHolderWrapper actual = gson.fromJson(json, DataHolderWrapper.class);
-    assertEquals(DEFAULT_VALUE + SUFFIX, actual.getWrappedData().getData());
+    assertThat(actual.getWrappedData().getData()).isEqualTo(DEFAULT_VALUE + SUFFIX);
   }
 
   private static class DataHolder {
@@ -105,7 +107,8 @@ public class CustomDeserializerTest {
 
   private static class DataHolderDeserializer implements JsonDeserializer<DataHolder> {
     @Override
-    public DataHolder deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+    public DataHolder deserialize(
+        JsonElement json, Type typeOfT, JsonDeserializationContext context)
         throws JsonParseException {
       JsonObject jsonObj = json.getAsJsonObject();
       String dataString = jsonObj.get("data").getAsString();
@@ -116,28 +119,38 @@ public class CustomDeserializerTest {
   @Test
   public void testJsonTypeFieldBasedDeserialization() {
     String json = "{field1:'abc',field2:'def',__type__:'SUB_TYPE1'}";
-    Gson gson = new GsonBuilder().registerTypeAdapter(MyBase.class, new JsonDeserializer<MyBase>() {
-      @Override public MyBase deserialize(JsonElement json, Type pojoType,
-          JsonDeserializationContext context) throws JsonParseException {
-        String type = json.getAsJsonObject().get(MyBase.TYPE_ACCESS).getAsString();
-        return context.deserialize(json, SubTypes.valueOf(type).getSubclass());
-      }
-    }).create();
+    Gson gson =
+        new GsonBuilder()
+            .registerTypeAdapter(
+                MyBase.class,
+                new JsonDeserializer<MyBase>() {
+                  @Override
+                  public MyBase deserialize(
+                      JsonElement json, Type pojoType, JsonDeserializationContext context)
+                      throws JsonParseException {
+                    String type = json.getAsJsonObject().get(MyBase.TYPE_ACCESS).getAsString();
+                    return context.deserialize(json, SubTypes.valueOf(type).getSubclass());
+                  }
+                })
+            .create();
     SubType1 target = (SubType1) gson.fromJson(json, MyBase.class);
-    assertEquals("abc", target.field1);
+    assertThat(target.field1).isEqualTo("abc");
   }
 
   private static class MyBase {
     static final String TYPE_ACCESS = "__type__";
   }
 
+  @SuppressWarnings("ImmutableEnumChecker")
   private enum SubTypes {
     SUB_TYPE1(SubType1.class),
     SUB_TYPE2(SubType2.class);
     private final Type subClass;
+
     private SubTypes(Type subClass) {
       this.subClass = subClass;
     }
+
     public Type getSubclass() {
       return subClass;
     }
@@ -154,64 +167,84 @@ public class CustomDeserializerTest {
 
   @Test
   public void testCustomDeserializerReturnsNullForTopLevelObject() {
-    Gson gson = new GsonBuilder()
-      .registerTypeAdapter(Base.class, new JsonDeserializer<Base>() {
-        @Override
-        public Base deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
-            throws JsonParseException {
-          return null;
-        }
-      }).create();
+    Gson gson =
+        new GsonBuilder()
+            .registerTypeAdapter(
+                Base.class,
+                new JsonDeserializer<Base>() {
+                  @Override
+                  public Base deserialize(
+                      JsonElement json, Type typeOfT, JsonDeserializationContext context)
+                      throws JsonParseException {
+                    return null;
+                  }
+                })
+            .create();
     String json = "{baseName:'Base',subName:'SubRevised'}";
     Base target = gson.fromJson(json, Base.class);
-    assertNull(target);
+    assertThat(target).isNull();
   }
 
   @Test
   public void testCustomDeserializerReturnsNull() {
-    Gson gson = new GsonBuilder()
-      .registerTypeAdapter(Base.class, new JsonDeserializer<Base>() {
-        @Override
-        public Base deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
-            throws JsonParseException {
-          return null;
-        }
-      }).create();
+    Gson gson =
+        new GsonBuilder()
+            .registerTypeAdapter(
+                Base.class,
+                new JsonDeserializer<Base>() {
+                  @Override
+                  public Base deserialize(
+                      JsonElement json, Type typeOfT, JsonDeserializationContext context)
+                      throws JsonParseException {
+                    return null;
+                  }
+                })
+            .create();
     String json = "{base:{baseName:'Base',subName:'SubRevised'}}";
     ClassWithBaseField target = gson.fromJson(json, ClassWithBaseField.class);
-    assertNull(target.base);
+    assertThat(target.base).isNull();
   }
 
   @Test
   public void testCustomDeserializerReturnsNullForArrayElements() {
-    Gson gson = new GsonBuilder()
-      .registerTypeAdapter(Base.class, new JsonDeserializer<Base>() {
-        @Override
-        public Base deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
-            throws JsonParseException {
-          return null;
-        }
-      }).create();
+    Gson gson =
+        new GsonBuilder()
+            .registerTypeAdapter(
+                Base.class,
+                new JsonDeserializer<Base>() {
+                  @Override
+                  public Base deserialize(
+                      JsonElement json, Type typeOfT, JsonDeserializationContext context)
+                      throws JsonParseException {
+                    return null;
+                  }
+                })
+            .create();
     String json = "[{baseName:'Base'},{baseName:'Base'}]";
     Base[] target = gson.fromJson(json, Base[].class);
-    assertNull(target[0]);
-    assertNull(target[1]);
+    assertThat(target[0]).isNull();
+    assertThat(target[1]).isNull();
   }
 
   @Test
   public void testCustomDeserializerReturnsNullForArrayElementsForArrayField() {
-    Gson gson = new GsonBuilder()
-      .registerTypeAdapter(Base.class, new JsonDeserializer<Base>() {
-        @Override
-        public Base deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
-            throws JsonParseException {
-          return null;
-        }
-      }).create();
+    Gson gson =
+        new GsonBuilder()
+            .registerTypeAdapter(
+                Base.class,
+                new JsonDeserializer<Base>() {
+                  @Override
+                  public Base deserialize(
+                      JsonElement json, Type typeOfT, JsonDeserializationContext context)
+                      throws JsonParseException {
+                    return null;
+                  }
+                })
+            .create();
     String json = "{bases:[{baseName:'Base'},{baseName:'Base'}]}";
     ClassWithBaseArray target = gson.fromJson(json, ClassWithBaseArray.class);
-    assertNull(target.bases[0]);
-    assertNull(target.bases[1]);
+    assertThat(target.bases[0]).isNull();
+    assertThat(target.bases[1]).isNull();
   }
 
   private static final class ClassWithBaseArray {

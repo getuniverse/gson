@@ -1,12 +1,17 @@
 Change Log
 ==========
 
+## Version 2.11.0-happeo-1
+
+* Record components serialized in original order.
+
 ## Version 2.10-happeo-1
-_2022-11-01_  [GitHub Diff](https://github.com/google/gson/compare/gson-parent-2.10...gson-parent-2.10-happeo-1)
 
 * `JsonSnippet` to support emitting pre-encoded JSON and validating input JSON
   without object mapping.
 * Improved record support.
+
+**Note**: Google's change log for versions newer than 2.10 is available only on the [GitHub Releases page](https://github.com/google/gson/releases).
 
 ## Version 2.10
 
@@ -65,8 +70,7 @@ Also many small improvements to javadoc.
 * Fix `FieldNamingPolicy.upperCaseFirstLetter` uppercasing non-letter (https://github.com/google/gson/pull/2004)
 
 ## Version 2.8.9-happeo-1
-_2021-11-21_  [GitHub Diff](https://github.com/google/gson/compare/gson-parent-2.8.9...gson-parent-2.8.9-happeo-1)
-* [Fix race for concurrent serialization of recursive type](https://github.com/google/gson/pull/767/commits/ebcdd9e30109497e9bf3030f41c19f968eaa2212).
+
 * Supports Java 16+ records
 * Serializes objects with inaccessible constructor
 * Throws illegal state exceptions instead of assertion errors
@@ -101,19 +105,11 @@ _2021-11-21_  [GitHub Diff](https://github.com/google/gson/compare/gson-parent-2
 * Added `JsonArray.isEmpty()` (https://github.com/google/gson/pull/1640).
 * Added new test cases (https://github.com/google/gson/pull/1638).
 * Fixed OSGi metadata generation to work on JavaSE < 9 (https://github.com/google/gson/pull/1603).
-
-## Version 2.8.6-universe-1
-_2019-12-07_  [GitHub Diff](https://github.com/google/gson/compare/gson-parent-2.8.6...gson-parent-2.8.6-universe-1)
- * [Fix race for concurrent serialization of recursive type](https://github.com/google/gson/pull/767/commits/ebcdd9e30109497e9bf3030f41c19f968eaa2212).
-
+=
 ## Version 2.8.6
 _2019-10-04_  [GitHub Diff](https://github.com/google/gson/compare/gson-parent-2.8.5...gson-parent-2.8.6)
  * Added static methods `JsonParser.parseString` and `JsonParser.parseReader` and deprecated instance method `JsonParser.parse`
  * Java 9 module-info support
-
-## Version 2.8.5-universe-1
-_2016-12-15_  [GitHub Diff](https://github.com/google/gson/compare/gson-parent-2.8.5...gson-parent-2.8.5-universe-1)
- * [Fix race for concurrent serialization of recursive type](https://github.com/google/gson/pull/767/commits/ebcdd9e30109497e9bf3030f41c19f968eaa2212).
 
 ## Version 2.8.5
 _2018-05-21_  [GitHub Diff](https://github.com/google/gson/compare/gson-parent-2.8.4...gson-parent-2.8.5)
@@ -143,7 +139,7 @@ _2017-05-30_  [GitHub Diff](https://github.com/google/gson/compare/gson-parent-2
  * `@JsonAdapter` annotation can now use `JsonSerializer` and `JsonDeserializer` as well.
 
 ## Version 2.8.0-universe-1
-_2016-12-15_  [GitHub Diff](https://github.com/google/gson/compare/gson-parent-2.8.0...gson-parent-2.8.0-universe-1)
+
  * [Fix race for concurrent serialization of recursive type](https://github.com/google/gson/pull/767/commits/ebcdd9e30109497e9bf3030f41c19f968eaa2212).
 
 ## Version 2.8
@@ -213,7 +209,7 @@ _2015-10-04_
  * New: APIs to add primitives directly to `JsonArray` instances.
  * New: ISO 8601 date type adapter. Find this in _extras_.
  * Fix: `FieldNamingPolicy` now works properly when running on a device with a Turkish locale.
-  [autovalue]: https://github.com/google/auto/tree/master/value
+  [autovalue]: https://github.com/google/auto/tree/main/value
 
 
 ## Version 2.3.1

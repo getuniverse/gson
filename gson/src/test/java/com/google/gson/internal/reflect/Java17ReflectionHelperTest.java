@@ -1,7 +1,6 @@
 /*
-/*
  * Copyright (C) 2022 Happeo Oy.
- * Copyright (C) 2022 The Gson authors
+ * Copyright (C) 2022 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,21 +19,20 @@
 
 package com.google.gson.internal.reflect;
 
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 
+import com.google.gson.internal.bind.util.Records;
 import java.nio.file.attribute.GroupPrincipal;
 import java.nio.file.attribute.UserPrincipal;
 import java.util.Objects;
 import org.junit.Test;
-
-import com.google.gson.internal.bind.util.Records;
 
 public class Java17ReflectionHelperTest {
   @Test
   public void testJava17Record() throws ClassNotFoundException {
     Class<?> unixDomainPrincipalClass = Class.forName("jdk.net.UnixDomainPrincipal");
     // UnixDomainPrincipal is a record
-    assertTrue(Records.isRecord(unixDomainPrincipalClass));
+    assertThat(Records.isRecord(unixDomainPrincipalClass)).isTrue();
   }
 
   /** Implementation of {@link UserPrincipal} and {@link GroupPrincipal} just for record tests. */

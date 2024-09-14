@@ -16,7 +16,7 @@
 
 package com.google.gson;
 
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
@@ -25,8 +25,8 @@ import java.util.Map;
 import org.junit.Test;
 
 /**
- * Unit test for the default JSON map serialization object located in the
- * {@link DefaultTypeAdapters} class.
+ * Unit test for the default JSON map serialization object located in the {@link
+ * DefaultTypeAdapters} class.
  *
  * @author Joel Leitch
  */
@@ -37,33 +37,33 @@ public class DefaultMapJsonSerializerTest {
   public void testEmptyMapNoTypeSerialization() {
     Map<String, String> emptyMap = new HashMap<>();
     JsonElement element = gson.toJsonTree(emptyMap, emptyMap.getClass());
-    assertTrue(element instanceof JsonObject);
+    assertThat(element).isInstanceOf(JsonObject.class);
     JsonObject emptyMapJsonObject = (JsonObject) element;
-    assertTrue(emptyMapJsonObject.entrySet().isEmpty());
+    assertThat(emptyMapJsonObject.entrySet()).isEmpty();
   }
 
   @Test
   public void testEmptyMapSerialization() {
-    Type mapType = new TypeToken<Map<String, String>>() { }.getType();
+    Type mapType = new TypeToken<Map<String, String>>() {}.getType();
     Map<String, String> emptyMap = new HashMap<>();
     JsonElement element = gson.toJsonTree(emptyMap, mapType);
 
-    assertTrue(element instanceof JsonObject);
+    assertThat(element).isInstanceOf(JsonObject.class);
     JsonObject emptyMapJsonObject = (JsonObject) element;
-    assertTrue(emptyMapJsonObject.entrySet().isEmpty());
+    assertThat(emptyMapJsonObject.entrySet()).isEmpty();
   }
 
   @Test
   public void testNonEmptyMapSerialization() {
-    Type mapType = new TypeToken<Map<String, String>>() { }.getType();
+    Type mapType = new TypeToken<Map<String, String>>() {}.getType();
     Map<String, String> myMap = new HashMap<>();
     String key = "key1";
     myMap.put(key, "value1");
     Gson gson = new Gson();
     JsonElement element = gson.toJsonTree(myMap, mapType);
 
-    assertTrue(element.isJsonObject());
+    assertThat(element.isJsonObject()).isTrue();
     JsonObject mapJsonObject = element.getAsJsonObject();
-    assertTrue(mapJsonObject.has(key));
+    assertThat(mapJsonObject.has(key)).isTrue();
   }
 }

@@ -18,19 +18,15 @@
  */
 package com.google.gson.functional;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
+import static com.google.common.truth.Truth.assertThat;
 
+import com.google.gson.Gson;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-
 import org.junit.Before;
 import org.junit.Test;
-
-import com.google.gson.Gson;
 
 /**
  * Tests for ensuring Gson thread-safety.
@@ -54,7 +50,7 @@ public class ConcurrencyTest {
   public void testSingleThreadSerialization() {
     MyObject myObj = new MyObject();
     for (int i = 0; i < 10; i++) {
-      gson.toJson(myObj);
+      String unused = gson.toJson(myObj);
     }
   }
 
@@ -65,7 +61,7 @@ public class ConcurrencyTest {
   @Test
   public void testSingleThreadDeserialization() {
     for (int i = 0; i < 10; i++) {
-      gson.fromJson("{'a':'hello','b':'world','i':1}", MyObject.class);
+      MyObject unused = gson.fromJson("{'a':'hello','b':'world','i':1}", MyObject.class);
     }
   }
 
@@ -80,25 +76,27 @@ public class ConcurrencyTest {
     final AtomicBoolean failed = new AtomicBoolean(false);
     ExecutorService executor = Executors.newFixedThreadPool(10);
     for (int taskCount = 0; taskCount < 10; taskCount++) {
-      executor.execute(new Runnable() {
-        @Override public void run() {
-          MyObject myObj = new MyObject();
-          try {
-            startLatch.await();
-            for (int i = 0; i < 10; i++) {
-              gson.toJson(myObj);
+      executor.execute(
+          new Runnable() {
+            @Override
+            public void run() {
+              MyObject myObj = new MyObject();
+              try {
+                startLatch.await();
+                for (int i = 0; i < 10; i++) {
+                  String unused = gson.toJson(myObj);
+                }
+              } catch (Throwable t) {
+                failed.set(true);
+              } finally {
+                finishedLatch.countDown();
+              }
             }
-          } catch (Throwable t) {
-            failed.set(true);
-          } finally {
-            finishedLatch.countDown();
-          }
-        }
-      });
+          });
     }
     startLatch.countDown();
     finishedLatch.await();
-    assertFalse(failed.get());
+    assertThat(failed.get()).isFalse();
   }
 
   /**
@@ -112,61 +110,27 @@ public class ConcurrencyTest {
     final AtomicBoolean failed = new AtomicBoolean(false);
     ExecutorService executor = Executors.newFixedThreadPool(10);
     for (int taskCount = 0; taskCount < 10; taskCount++) {
-      executor.execute(new Runnable() {
-        @Override public void run() {
-          try {
-            startLatch.await();
-            for (int i = 0; i < 10; i++) {
-              gson.fromJson("{'a':'hello','b':'world','i':1}", MyObject.class);
+      executor.execute(
+          new Runnable() {
+            @Override
+            public void run() {
+              try {
+                startLatch.await();
+                for (int i = 0; i < 10; i++) {
+                  MyObject unused =
+                      gson.fromJson("{'a':'hello','b':'world','i':1}", MyObject.class);
+                }
+              } catch (Throwable t) {
+                failed.set(true);
+              } finally {
+                finishedLatch.countDown();
+              }
             }
-          } catch (Throwable t) {
-            failed.set(true);
-          } finally {
-            finishedLatch.countDown();
-          }
-        }
-      });
+          });
     }
     startLatch.countDown();
     finishedLatch.await();
-    assertFalse(failed.get());
-  }
-
-  /**
-   * Test for:
-   * https://github.com/google/gson/issues/764
-   */
-  @Test
-  public void testMultiThreadRecursiveObjectSerialization() throws InterruptedException {
-    final int threads = 4;
-    final ExecutorService executor = Executors.newFixedThreadPool(threads);
-    final AtomicReference<Throwable> throwable = new AtomicReference<Throwable>();
-
-    for (int i = 0; i < 1000; i++) {
-      final CountDownLatch startLatch = new CountDownLatch(1);
-      final CountDownLatch finishedLatch = new CountDownLatch(threads);
-      final Gson gson = new Gson();
-      final MyRecursiveObject obj = new MyRecursiveObject();
-
-      for (int j = 0; j < threads; j++) {
-        executor.execute(new Runnable() {
-          public void run() {
-            try {
-              startLatch.await();
-              gson.toJson(obj);
-            } catch (Throwable t) {
-              throwable.set(t);
-            } finally {
-              finishedLatch.countDown();
-            }
-          }
-        });
-      }
-
-      startLatch.countDown();
-      finishedLatch.await();
-      assertNull(throwable.get());
-    }
+    assertThat(failed.get()).isFalse();
   }
 
   @SuppressWarnings("unused")
@@ -186,6 +150,7 @@ public class ConcurrencyTest {
     }
   }
 
+  @SuppressWarnings("unused")
   private static class MyRecursiveObject {
     MyNestedObject obj;
 
@@ -213,5 +178,4 @@ public class ConcurrencyTest {
       }
     }
   }
-
 }

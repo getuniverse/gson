@@ -16,13 +16,13 @@
 
 package com.google.gson.internal.bind;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import com.google.gson.Strictness;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.MalformedJsonException;
 import java.io.IOException;
@@ -36,9 +36,9 @@ public final class JsonElementReaderTest {
     JsonElement element = JsonParser.parseString("[1, 2, 3]");
     JsonTreeReader reader = new JsonTreeReader(element);
     reader.beginArray();
-    assertEquals(1, reader.nextInt());
-    assertEquals(2L, reader.nextLong());
-    assertEquals(3.0, reader.nextDouble(), 0);
+    assertThat(reader.nextInt()).isEqualTo(1);
+    assertThat(reader.nextLong()).isEqualTo(2L);
+    assertThat(reader.nextDouble()).isEqualTo(3.0);
     reader.endArray();
   }
 
@@ -46,11 +46,11 @@ public final class JsonElementReaderTest {
   public void testLenientNansAndInfinities() throws IOException {
     JsonElement element = JsonParser.parseString("[NaN, -Infinity, Infinity]");
     JsonTreeReader reader = new JsonTreeReader(element);
-    reader.setLenient(true);
+    reader.setStrictness(Strictness.LENIENT);
     reader.beginArray();
-    assertTrue(Double.isNaN(reader.nextDouble()));
-    assertEquals(Double.NEGATIVE_INFINITY, reader.nextDouble(), 0);
-    assertEquals(Double.POSITIVE_INFINITY, reader.nextDouble(), 0);
+    assertThat(reader.nextDouble()).isNaN();
+    assertThat(reader.nextDouble()).isEqualTo(Double.NEGATIVE_INFINITY);
+    assertThat(reader.nextDouble()).isEqualTo(Double.POSITIVE_INFINITY);
     reader.endArray();
   }
 
@@ -58,29 +58,29 @@ public final class JsonElementReaderTest {
   public void testStrictNansAndInfinities() throws IOException {
     JsonElement element = JsonParser.parseString("[NaN, -Infinity, Infinity]");
     JsonTreeReader reader = new JsonTreeReader(element);
-    reader.setLenient(false);
+    reader.setStrictness(Strictness.LEGACY_STRICT);
     reader.beginArray();
     try {
       reader.nextDouble();
       fail();
     } catch (MalformedJsonException e) {
-      assertEquals("JSON forbids NaN and infinities: NaN", e.getMessage());
+      assertThat(e).hasMessageThat().isEqualTo("JSON forbids NaN and infinities: NaN");
     }
-    assertEquals("NaN", reader.nextString());
+    assertThat(reader.nextString()).isEqualTo("NaN");
     try {
       reader.nextDouble();
       fail();
     } catch (MalformedJsonException e) {
-      assertEquals("JSON forbids NaN and infinities: -Infinity", e.getMessage());
+      assertThat(e).hasMessageThat().isEqualTo("JSON forbids NaN and infinities: -Infinity");
     }
-    assertEquals("-Infinity", reader.nextString());
+    assertThat(reader.nextString()).isEqualTo("-Infinity");
     try {
       reader.nextDouble();
       fail();
     } catch (MalformedJsonException e) {
-      assertEquals("JSON forbids NaN and infinities: Infinity", e.getMessage());
+      assertThat(e).hasMessageThat().isEqualTo("JSON forbids NaN and infinities: Infinity");
     }
-    assertEquals("Infinity", reader.nextString());
+    assertThat(reader.nextString()).isEqualTo("Infinity");
     reader.endArray();
   }
 
@@ -89,9 +89,9 @@ public final class JsonElementReaderTest {
     JsonElement element = JsonParser.parseString("[\"1\", \"2\", \"3\"]");
     JsonTreeReader reader = new JsonTreeReader(element);
     reader.beginArray();
-    assertEquals(1, reader.nextInt());
-    assertEquals(2L, reader.nextLong());
-    assertEquals(3.0, reader.nextDouble(), 0);
+    assertThat(reader.nextInt()).isEqualTo(1);
+    assertThat(reader.nextLong()).isEqualTo(2L);
+    assertThat(reader.nextDouble()).isEqualTo(3.0);
     reader.endArray();
   }
 
@@ -100,7 +100,7 @@ public final class JsonElementReaderTest {
     JsonElement element = JsonParser.parseString("[1]");
     JsonTreeReader reader = new JsonTreeReader(element);
     reader.beginArray();
-    assertEquals("1", reader.nextString());
+    assertThat(reader.nextString()).isEqualTo("1");
     reader.endArray();
   }
 
@@ -109,8 +109,8 @@ public final class JsonElementReaderTest {
     JsonElement element = JsonParser.parseString("[true, false]");
     JsonTreeReader reader = new JsonTreeReader(element);
     reader.beginArray();
-    assertEquals(true, reader.nextBoolean());
-    assertEquals(false, reader.nextBoolean());
+    assertThat(reader.nextBoolean()).isEqualTo(true);
+    assertThat(reader.nextBoolean()).isEqualTo(false);
     reader.endArray();
   }
 
@@ -129,8 +129,8 @@ public final class JsonElementReaderTest {
     JsonElement element = JsonParser.parseString("[\"A\",\"B\"]");
     JsonTreeReader reader = new JsonTreeReader(element);
     reader.beginArray();
-    assertEquals("A", reader.nextString());
-    assertEquals("B", reader.nextString());
+    assertThat(reader.nextString()).isEqualTo("A");
+    assertThat(reader.nextString()).isEqualTo("B");
     reader.endArray();
   }
 
@@ -138,36 +138,36 @@ public final class JsonElementReaderTest {
   public void testArray() throws IOException {
     JsonElement element = JsonParser.parseString("[1, 2, 3]");
     JsonTreeReader reader = new JsonTreeReader(element);
-    assertEquals(JsonToken.BEGIN_ARRAY, reader.peek());
+    assertThat(reader.peek()).isEqualTo(JsonToken.BEGIN_ARRAY);
     reader.beginArray();
-    assertEquals(JsonToken.NUMBER, reader.peek());
-    assertEquals(1, reader.nextInt());
-    assertEquals(JsonToken.NUMBER, reader.peek());
-    assertEquals(2, reader.nextInt());
-    assertEquals(JsonToken.NUMBER, reader.peek());
-    assertEquals(3, reader.nextInt());
-    assertEquals(JsonToken.END_ARRAY, reader.peek());
+    assertThat(reader.peek()).isEqualTo(JsonToken.NUMBER);
+    assertThat(reader.nextInt()).isEqualTo(1);
+    assertThat(reader.peek()).isEqualTo(JsonToken.NUMBER);
+    assertThat(reader.nextInt()).isEqualTo(2);
+    assertThat(reader.peek()).isEqualTo(JsonToken.NUMBER);
+    assertThat(reader.nextInt()).isEqualTo(3);
+    assertThat(reader.peek()).isEqualTo(JsonToken.END_ARRAY);
     reader.endArray();
-    assertEquals(JsonToken.END_DOCUMENT, reader.peek());
+    assertThat(reader.peek()).isEqualTo(JsonToken.END_DOCUMENT);
   }
 
   @Test
   public void testObject() throws IOException {
     JsonElement element = JsonParser.parseString("{\"A\": 1, \"B\": 2}");
     JsonTreeReader reader = new JsonTreeReader(element);
-    assertEquals(JsonToken.BEGIN_OBJECT, reader.peek());
+    assertThat(reader.peek()).isEqualTo(JsonToken.BEGIN_OBJECT);
     reader.beginObject();
-    assertEquals(JsonToken.NAME, reader.peek());
-    assertEquals("A", reader.nextName());
-    assertEquals(JsonToken.NUMBER, reader.peek());
-    assertEquals(1, reader.nextInt());
-    assertEquals(JsonToken.NAME, reader.peek());
-    assertEquals("B", reader.nextName());
-    assertEquals(JsonToken.NUMBER, reader.peek());
-    assertEquals(2, reader.nextInt());
-    assertEquals(JsonToken.END_OBJECT, reader.peek());
+    assertThat(reader.peek()).isEqualTo(JsonToken.NAME);
+    assertThat(reader.nextName()).isEqualTo("A");
+    assertThat(reader.peek()).isEqualTo(JsonToken.NUMBER);
+    assertThat(reader.nextInt()).isEqualTo(1);
+    assertThat(reader.peek()).isEqualTo(JsonToken.NAME);
+    assertThat(reader.nextName()).isEqualTo("B");
+    assertThat(reader.peek()).isEqualTo(JsonToken.NUMBER);
+    assertThat(reader.nextInt()).isEqualTo(2);
+    assertThat(reader.peek()).isEqualTo(JsonToken.END_OBJECT);
     reader.endObject();
-    assertEquals(JsonToken.END_DOCUMENT, reader.peek());
+    assertThat(reader.peek()).isEqualTo(JsonToken.END_DOCUMENT);
   }
 
   @Test
@@ -197,12 +197,12 @@ public final class JsonElementReaderTest {
     JsonElement element = JsonParser.parseString("{\"A\":{},\"B\":{\"C\":{}}}");
     JsonTreeReader reader = new JsonTreeReader(element);
     reader.beginObject();
-    assertEquals("A", reader.nextName());
+    assertThat(reader.nextName()).isEqualTo("A");
     reader.beginObject();
     reader.endObject();
-    assertEquals("B", reader.nextName());
+    assertThat(reader.nextName()).isEqualTo("B");
     reader.beginObject();
-    assertEquals("C", reader.nextName());
+    assertThat(reader.nextName()).isEqualTo("C");
     reader.beginObject();
     reader.endObject();
     reader.endObject();
@@ -222,11 +222,11 @@ public final class JsonElementReaderTest {
     JsonElement element = JsonParser.parseString("[\"A\",{\"B\":[[]]},\"C\",[[]],\"D\",null]");
     JsonTreeReader reader = new JsonTreeReader(element);
     reader.beginArray();
-    assertEquals("A", reader.nextString());
+    assertThat(reader.nextString()).isEqualTo("A");
     reader.skipValue();
-    assertEquals("C", reader.nextString());
+    assertThat(reader.nextString()).isEqualTo("C");
     reader.skipValue();
-    assertEquals("D", reader.nextString());
+    assertThat(reader.nextString()).isEqualTo("D");
     reader.skipValue();
     reader.endArray();
   }
@@ -319,7 +319,7 @@ public final class JsonElementReaderTest {
       fail();
     } catch (IllegalStateException expected) {
     }
-    assertEquals("A", reader.nextString());
+    assertThat(reader.nextString()).isEqualTo("A");
     reader.endArray();
   }
 
@@ -333,9 +333,9 @@ public final class JsonElementReaderTest {
       fail();
     } catch (IllegalStateException expected) {
     }
-    reader.nextName();
-    assertEquals(reader.nextJsonElement(), new JsonPrimitive(1));
-    reader.nextName();
+    String unused1 = reader.nextName();
+    assertThat(new JsonPrimitive(1)).isEqualTo(reader.nextJsonElement());
+    String unused2 = reader.nextName();
     reader.beginObject();
     try {
       reader.nextJsonElement();
@@ -343,7 +343,7 @@ public final class JsonElementReaderTest {
     } catch (IllegalStateException expected) {
     }
     reader.endObject();
-    reader.nextName();
+    String unused3 = reader.nextName();
     reader.beginArray();
     try {
       reader.nextJsonElement();

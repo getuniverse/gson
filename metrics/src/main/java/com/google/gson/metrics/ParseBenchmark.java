@@ -32,14 +32,15 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParser;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
 import java.io.CharArrayReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
-import java.lang.reflect.Type;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -50,9 +51,8 @@ import java.util.zip.ZipFile;
 /**
  * Measure Gson and Jackson parsing and binding performance.
  *
- * <p>This benchmark requires that ParseBenchmarkData.zip is on the classpath.
- * That file contains Twitter feed data, which is representative of what
- * applications will be parsing.
+ * <p>This benchmark requires that ParseBenchmarkData.zip is on the classpath. That file contains
+ * Twitter feed data, which is representative of what applications will be parsing.
  */
 public final class ParseBenchmark {
   @Param Document document;
@@ -63,7 +63,10 @@ public final class ParseBenchmark {
     READER_SHORT(new TypeToken<Feed>() {}, new TypeReference<Feed>() {}),
     READER_LONG(new TypeToken<Feed>() {}, new TypeReference<Feed>() {});
 
+    @SuppressWarnings("ImmutableEnumChecker")
     private final TypeToken<?> gsonType;
+
+    @SuppressWarnings("ImmutableEnumChecker")
     private final TypeReference<?> jacksonType;
 
     private Document(TypeToken<?> typeToken, TypeReference<?> typeReference) {
@@ -74,35 +77,42 @@ public final class ParseBenchmark {
 
   private enum Api {
     JACKSON_STREAM {
-      @Override Parser newParser() {
+      @Override
+      Parser newParser() {
         return new JacksonStreamParser();
       }
     },
     JACKSON_BIND {
-      @Override Parser newParser() {
+      @Override
+      Parser newParser() {
         return new JacksonBindParser();
       }
     },
     GSON_STREAM {
-      @Override Parser newParser() {
+      @Override
+      Parser newParser() {
         return new GsonStreamParser();
       }
     },
     GSON_SKIP {
-      @Override Parser newParser() {
+      @Override
+      Parser newParser() {
         return new GsonSkipParser();
       }
     },
     GSON_DOM {
-      @Override Parser newParser() {
+      @Override
+      Parser newParser() {
         return new GsonDomParser();
       }
     },
     GSON_BIND {
-      @Override Parser newParser() {
+      @Override
+      Parser newParser() {
         return new GsonBindParser();
       }
     };
+
     abstract Parser newParser();
   }
 
@@ -137,7 +147,8 @@ public final class ParseBenchmark {
     ZipFile zipFile = new ZipFile(getResourceFile("/ParseBenchmarkData.zip"));
     try {
       ZipEntry zipEntry = zipFile.getEntry(fileName);
-      Reader reader = new InputStreamReader(zipFile.getInputStream(zipEntry));
+      Reader reader =
+          new InputStreamReader(zipFile.getInputStream(zipEntry), StandardCharsets.UTF_8);
       char[] buffer = new char[8192];
       StringWriter writer = new StringWriter();
       int count;
@@ -163,46 +174,43 @@ public final class ParseBenchmark {
   private static class GsonStreamParser implements Parser {
     @Override
     public void parse(char[] data, Document document) throws Exception {
-      com.google.gson.stream.JsonReader jsonReader
-          = new com.google.gson.stream.JsonReader(new CharArrayReader(data));
+      JsonReader jsonReader = new JsonReader(new CharArrayReader(data));
       readToken(jsonReader);
       jsonReader.close();
     }
 
-    private void readToken(com.google.gson.stream.JsonReader reader) throws IOException {
+    private static void readToken(JsonReader reader) throws IOException {
       while (true) {
         switch (reader.peek()) {
-        case BEGIN_ARRAY:
-          reader.beginArray();
-          break;
-        case END_ARRAY:
-          reader.endArray();
-          break;
-        case BEGIN_OBJECT:
-          reader.beginObject();
-          break;
-        case END_OBJECT:
-          reader.endObject();
-          break;
-        case NAME:
-          reader.nextName();
-          break;
-        case BOOLEAN:
-          reader.nextBoolean();
-          break;
-        case NULL:
-          reader.nextNull();
-          break;
-        case NUMBER:
-          reader.nextLong();
-          break;
-        case STRING:
-          reader.nextString();
-          break;
-        case END_DOCUMENT:
-          return;
-        default:
-          throw new IllegalArgumentException("Unexpected token" + reader.peek());
+          case BEGIN_ARRAY:
+            reader.beginArray();
+            break;
+          case END_ARRAY:
+            reader.endArray();
+            break;
+          case BEGIN_OBJECT:
+            reader.beginObject();
+            break;
+          case END_OBJECT:
+            reader.endObject();
+            break;
+          case NAME:
+            reader.nextName();
+            break;
+          case BOOLEAN:
+            reader.nextBoolean();
+            break;
+          case NULL:
+            reader.nextNull();
+            break;
+          case NUMBER:
+            reader.nextLong();
+            break;
+          case STRING:
+            reader.nextString();
+            break;
+          case END_DOCUMENT:
+            return;
         }
       }
     }
@@ -211,8 +219,7 @@ public final class ParseBenchmark {
   private static class GsonSkipParser implements Parser {
     @Override
     public void parse(char[] data, Document document) throws Exception {
-      com.google.gson.stream.JsonReader jsonReader
-          = new com.google.gson.stream.JsonReader(new CharArrayReader(data));
+      JsonReader jsonReader = new JsonReader(new CharArrayReader(data));
       jsonReader.skipValue();
       jsonReader.close();
     }
@@ -221,39 +228,43 @@ public final class ParseBenchmark {
   private static class JacksonStreamParser implements Parser {
     @Override
     public void parse(char[] data, Document document) throws Exception {
-      JsonFactory jsonFactory = new JsonFactoryBuilder().configure(JsonFactory.Feature.CANONICALIZE_FIELD_NAMES, false).build();
-      com.fasterxml.jackson.core.JsonParser jp = jsonFactory.createParser(new CharArrayReader(data));
+      JsonFactory jsonFactory =
+          new JsonFactoryBuilder()
+              .configure(JsonFactory.Feature.CANONICALIZE_FIELD_NAMES, false)
+              .build();
+      com.fasterxml.jackson.core.JsonParser jp =
+          jsonFactory.createParser(new CharArrayReader(data));
       int depth = 0;
       do {
         JsonToken token = jp.nextToken();
         switch (token) {
-        case START_OBJECT:
-        case START_ARRAY:
-          depth++;
-          break;
-        case END_OBJECT:
-        case END_ARRAY:
-          depth--;
-          break;
-        case FIELD_NAME:
-          jp.getCurrentName();
-          break;
-        case VALUE_STRING:
-          jp.getText();
-          break;
-        case VALUE_NUMBER_INT:
-        case VALUE_NUMBER_FLOAT:
-          jp.getLongValue();
-          break;
-        case VALUE_TRUE:
-        case VALUE_FALSE:
-          jp.getBooleanValue();
-          break;
-        case VALUE_NULL:
-          // Do nothing; nextToken() will advance in stream
-          break;
-        default:
-          throw new IllegalArgumentException("Unexpected token " + token);
+          case START_OBJECT:
+          case START_ARRAY:
+            depth++;
+            break;
+          case END_OBJECT:
+          case END_ARRAY:
+            depth--;
+            break;
+          case FIELD_NAME:
+            jp.currentName();
+            break;
+          case VALUE_STRING:
+            jp.getText();
+            break;
+          case VALUE_NUMBER_INT:
+          case VALUE_NUMBER_FLOAT:
+            jp.getLongValue();
+            break;
+          case VALUE_TRUE:
+          case VALUE_FALSE:
+            jp.getBooleanValue();
+            break;
+          case VALUE_NULL:
+            // Do nothing; nextToken() will advance in stream
+            break;
+          default:
+            throw new IllegalArgumentException("Unexpected token " + token);
         }
       } while (depth > 0);
       jp.close();
@@ -268,9 +279,8 @@ public final class ParseBenchmark {
   }
 
   private static class GsonBindParser implements Parser {
-    private static Gson gson = new GsonBuilder()
-        .setDateFormat("EEE MMM dd HH:mm:ss Z yyyy")
-        .create();
+    private static final Gson gson =
+        new GsonBuilder().setDateFormat("EEE MMM dd HH:mm:ss Z yyyy").create();
 
     @Override
     public void parse(char[] data, Document document) throws Exception {
@@ -282,10 +292,11 @@ public final class ParseBenchmark {
     private static final ObjectMapper mapper;
 
     static {
-      mapper = JsonMapper.builder()
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-        .configure(MapperFeature.AUTO_DETECT_FIELDS, true)
-        .build();
+      mapper =
+          JsonMapper.builder()
+              .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+              .configure(MapperFeature.AUTO_DETECT_FIELDS, true)
+              .build();
       mapper.setDateFormat(new SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy", Locale.ENGLISH));
     }
 
@@ -295,6 +306,7 @@ public final class ParseBenchmark {
     }
   }
 
+  @SuppressWarnings("MemberName")
   static class Tweet {
     @JsonProperty String coordinates;
     @JsonProperty boolean favorited;
@@ -318,6 +330,7 @@ public final class ParseBenchmark {
     @JsonProperty String in_reply_to_user_id_str;
   }
 
+  @SuppressWarnings("MemberName")
   static class User {
     @JsonProperty String name;
     @JsonProperty String profile_sidebar_border_color;
@@ -339,7 +352,11 @@ public final class ParseBenchmark {
     @JsonProperty boolean profile_use_background_image;
     @JsonProperty int listed_count;
     @JsonProperty String lang;
-    @JsonProperty("protected") @SerializedName("protected") boolean isProtected;
+
+    @JsonProperty("protected")
+    @SerializedName("protected")
+    boolean isProtected;
+
     @JsonProperty int followers_count;
     @JsonProperty String profile_text_color;
     @JsonProperty String profile_background_color;
@@ -349,7 +366,7 @@ public final class ParseBenchmark {
     @JsonProperty boolean geo_enabled;
     @JsonProperty boolean verified;
     @JsonProperty String profile_background_image_url;
-    @JsonProperty boolean defalut_profile_image;
+    @JsonProperty boolean default_profile_image;
     @JsonProperty int friends_count;
     @JsonProperty int statuses_count;
     @JsonProperty String screen_name;
@@ -361,17 +378,27 @@ public final class ParseBenchmark {
     @JsonProperty String id;
     @JsonProperty String title;
     @JsonProperty String description;
-    @JsonProperty("alternate") @SerializedName("alternate") List<Link> alternates;
+
+    @JsonProperty("alternate")
+    @SerializedName("alternate")
+    List<Link> alternates;
+
     @JsonProperty long updated;
     @JsonProperty List<Item> items;
 
-    @Override public String toString() {
-      StringBuilder result = new StringBuilder()
-          .append(id)
-          .append("\n").append(title)
-          .append("\n").append(description)
-          .append("\n").append(alternates)
-          .append("\n").append(updated);
+    @Override
+    public String toString() {
+      StringBuilder result =
+          new StringBuilder()
+              .append(id)
+              .append('\n')
+              .append(title)
+              .append('\n')
+              .append(description)
+              .append('\n')
+              .append(alternates)
+              .append('\n')
+              .append(updated);
       int i = 1;
       for (Item item : items) {
         result.append(i++).append(": ").append(item).append("\n\n");
@@ -383,7 +410,8 @@ public final class ParseBenchmark {
   static class Link {
     @JsonProperty String href;
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
       return href;
     }
   }
@@ -393,27 +421,40 @@ public final class ParseBenchmark {
     @JsonProperty String title;
     @JsonProperty long published;
     @JsonProperty long updated;
-    @JsonProperty("alternate") @SerializedName("alternate") List<Link> alternates;
+
+    @JsonProperty("alternate")
+    @SerializedName("alternate")
+    List<Link> alternates;
+
     @JsonProperty Content content;
     @JsonProperty String author;
     @JsonProperty List<ReaderUser> likingUsers;
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
       return title
-          + "\nauthor: " + author
-          + "\npublished: " + published
-          + "\nupdated: " + updated
-          + "\n" + content
-          + "\nliking users: " + likingUsers
-          + "\nalternates: " + alternates
-          + "\ncategories: " + categories;
+          + "\nauthor: "
+          + author
+          + "\npublished: "
+          + published
+          + "\nupdated: "
+          + updated
+          + "\n"
+          + content
+          + "\nliking users: "
+          + likingUsers
+          + "\nalternates: "
+          + alternates
+          + "\ncategories: "
+          + categories;
     }
   }
 
   static class Content {
     @JsonProperty String content;
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
       return content;
     }
   }
@@ -421,7 +462,8 @@ public final class ParseBenchmark {
   static class ReaderUser {
     @JsonProperty String userId;
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
       return userId;
     }
   }

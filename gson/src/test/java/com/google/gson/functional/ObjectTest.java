@@ -16,21 +16,21 @@
 
 package com.google.gson.functional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.InstanceCreator;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.common.TestTypes.ArrayOfObjects;
@@ -42,7 +42,6 @@ import com.google.gson.common.TestTypes.ClassWithObjects;
 import com.google.gson.common.TestTypes.ClassWithTransientFields;
 import com.google.gson.common.TestTypes.Nested;
 import com.google.gson.common.TestTypes.PrimitiveArray;
-import com.google.gson.internal.JavaVersion;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -79,7 +78,7 @@ public class ObjectTest {
   }
 
   @After
-  public void tearDown() throws Exception {
+  public void tearDown() {
     TimeZone.setDefault(oldTimeZone);
     Locale.setDefault(oldLocale);
   }
@@ -88,88 +87,88 @@ public class ObjectTest {
   public void testJsonInSingleQuotesDeserialization() {
     String json = "{'stringValue':'no message','intValue':10,'longValue':20}";
     BagOfPrimitives target = gson.fromJson(json, BagOfPrimitives.class);
-    assertEquals("no message", target.stringValue);
-    assertEquals(10, target.intValue);
-    assertEquals(20, target.longValue);
+    assertThat(target.stringValue).isEqualTo("no message");
+    assertThat(target.intValue).isEqualTo(10);
+    assertThat(target.longValue).isEqualTo(20);
   }
 
   @Test
   public void testJsonInMixedQuotesDeserialization() {
     String json = "{\"stringValue\":'no message','intValue':10,'longValue':20}";
     BagOfPrimitives target = gson.fromJson(json, BagOfPrimitives.class);
-    assertEquals("no message", target.stringValue);
-    assertEquals(10, target.intValue);
-    assertEquals(20, target.longValue);
+    assertThat(target.stringValue).isEqualTo("no message");
+    assertThat(target.intValue).isEqualTo(10);
+    assertThat(target.longValue).isEqualTo(20);
   }
 
   @Test
-  public void testBagOfPrimitivesSerialization() throws Exception {
+  public void testBagOfPrimitivesSerialization() {
     BagOfPrimitives target = new BagOfPrimitives(10, 20, false, "stringValue");
-    assertEquals(target.getExpectedJson(), gson.toJson(target));
+    assertThat(gson.toJson(target)).isEqualTo(target.getExpectedJson());
   }
 
   @Test
-  public void testBagOfPrimitivesDeserialization() throws Exception {
+  public void testBagOfPrimitivesDeserialization() {
     BagOfPrimitives src = new BagOfPrimitives(10, 20, false, "stringValue");
     String json = src.getExpectedJson();
     BagOfPrimitives target = gson.fromJson(json, BagOfPrimitives.class);
-    assertEquals(json, target.getExpectedJson());
+    assertThat(target.getExpectedJson()).isEqualTo(json);
   }
 
   @Test
-  public void testBagOfPrimitiveWrappersSerialization() throws Exception {
+  public void testBagOfPrimitiveWrappersSerialization() {
     BagOfPrimitiveWrappers target = new BagOfPrimitiveWrappers(10L, 20, false);
-    assertEquals(target.getExpectedJson(), gson.toJson(target));
+    assertThat(gson.toJson(target)).isEqualTo(target.getExpectedJson());
   }
 
   @Test
-  public void testBagOfPrimitiveWrappersDeserialization() throws Exception {
+  public void testBagOfPrimitiveWrappersDeserialization() {
     BagOfPrimitiveWrappers target = new BagOfPrimitiveWrappers(10L, 20, false);
     String jsonString = target.getExpectedJson();
     target = gson.fromJson(jsonString, BagOfPrimitiveWrappers.class);
-    assertEquals(jsonString, target.getExpectedJson());
+    assertThat(target.getExpectedJson()).isEqualTo(jsonString);
   }
 
   @Test
-  public void testClassWithTransientFieldsSerialization() throws Exception {
+  public void testClassWithTransientFieldsSerialization() {
     ClassWithTransientFields<Long> target = new ClassWithTransientFields<>(1L);
-    assertEquals(target.getExpectedJson(), gson.toJson(target));
+    assertThat(gson.toJson(target)).isEqualTo(target.getExpectedJson());
   }
 
   @Test
-  public void testClassWithTransientFieldsDeserialization() throws Exception {
+  public void testClassWithTransientFieldsDeserialization() {
     String json = "{\"longValue\":[1]}";
     ClassWithTransientFields<?> target = gson.fromJson(json, ClassWithTransientFields.class);
-    assertEquals(json, target.getExpectedJson());
+    assertThat(target.getExpectedJson()).isEqualTo(json);
   }
 
   @Test
-  public void testClassWithTransientFieldsDeserializationTransientFieldsPassedInJsonAreIgnored()
-      throws Exception {
-    String json = "{\"transientLongValue\":1,\"longValue\":[1]}";
+  public void testClassWithTransientFieldsDeserializationTransientFieldsPassedInJsonAreIgnored() {
+    String json = "{\"transientLongValue\":5,\"longValue\":[1]}";
     ClassWithTransientFields<?> target = gson.fromJson(json, ClassWithTransientFields.class);
-    assertFalse(target.transientLongValue != 1);
+    assertThat(target.transientLongValue).isEqualTo(1);
   }
 
   @Test
-  public void testClassWithNoFieldsSerialization() throws Exception {
-    assertEquals("{}", gson.toJson(new ClassWithNoFields()));
+  public void testClassWithNoFieldsSerialization() {
+    assertThat(gson.toJson(new ClassWithNoFields())).isEqualTo("{}");
   }
 
   @Test
-  public void testClassWithNoFieldsDeserialization() throws Exception {
+  public void testClassWithNoFieldsDeserialization() {
     String json = "{}";
     ClassWithNoFields target = gson.fromJson(json, ClassWithNoFields.class);
     ClassWithNoFields expected = new ClassWithNoFields();
-    assertEquals(expected, target);
+    assertThat(target).isEqualTo(expected);
   }
 
-  private static class Subclass extends Superclass1 {
-  }
+  private static class Subclass extends Superclass1 {}
+
   private static class Superclass1 extends Superclass2 {
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "HidingField"})
     String s;
   }
+
   private static class Superclass2 {
     @SuppressWarnings("unused")
     String s;
@@ -177,43 +176,74 @@ public class ObjectTest {
 
   @Test
   public void testClassWithDuplicateFields() {
+    String expectedMessage =
+        "Class com.google.gson.functional.ObjectTest$Subclass declares multiple JSON fields named"
+            + " 's'; conflict is caused by fields"
+            + " com.google.gson.functional.ObjectTest$Superclass1#s and"
+            + " com.google.gson.functional.ObjectTest$Superclass2#s\n"
+            + "See https://github.com/google/gson/blob/main/Troubleshooting.md#duplicate-fields";
+
     try {
       gson.getAdapter(Subclass.class);
       fail();
     } catch (IllegalArgumentException e) {
-      assertEquals(
-          "Class com.google.gson.functional.ObjectTest$Subclass declares multiple JSON fields named 's';"
-          + " conflict is caused by fields com.google.gson.functional.ObjectTest$Superclass1#s and"
-          + " com.google.gson.functional.ObjectTest$Superclass2#s",
-          e.getMessage()
-      );
+      assertThat(e).hasMessageThat().isEqualTo(expectedMessage);
+    }
+
+    // Detection should also work properly when duplicate fields exist only for serialization
+    Gson gson =
+        new GsonBuilder()
+            .addDeserializationExclusionStrategy(
+                new ExclusionStrategy() {
+                  @Override
+                  public boolean shouldSkipField(FieldAttributes f) {
+                    // Skip all fields for deserialization
+                    return true;
+                  }
+
+                  @Override
+                  public boolean shouldSkipClass(Class<?> clazz) {
+                    return false;
+                  }
+                })
+            .create();
+
+    try {
+      gson.getAdapter(Subclass.class);
+      fail();
+    } catch (IllegalArgumentException e) {
+      assertThat(e).hasMessageThat().isEqualTo(expectedMessage);
     }
   }
 
   @Test
-  public void testNestedSerialization() throws Exception {
-    Nested target = new Nested(new BagOfPrimitives(10, 20, false, "stringValue"),
-       new BagOfPrimitives(30, 40, true, "stringValue"));
-    assertEquals(target.getExpectedJson(), gson.toJson(target));
+  public void testNestedSerialization() {
+    Nested target =
+        new Nested(
+            new BagOfPrimitives(10, 20, false, "stringValue"),
+            new BagOfPrimitives(30, 40, true, "stringValue"));
+    assertThat(gson.toJson(target)).isEqualTo(target.getExpectedJson());
   }
 
   @Test
-  public void testNestedDeserialization() throws Exception {
-    String json = "{\"primitive1\":{\"longValue\":10,\"intValue\":20,\"booleanValue\":false,"
-        + "\"stringValue\":\"stringValue\"},\"primitive2\":{\"longValue\":30,\"intValue\":40,"
-        + "\"booleanValue\":true,\"stringValue\":\"stringValue\"}}";
+  public void testNestedDeserialization() {
+    String json =
+        "{\"primitive1\":{\"longValue\":10,\"intValue\":20,\"booleanValue\":false,"
+            + "\"stringValue\":\"stringValue\"},\"primitive2\":{\"longValue\":30,\"intValue\":40,"
+            + "\"booleanValue\":true,\"stringValue\":\"stringValue\"}}";
     Nested target = gson.fromJson(json, Nested.class);
-    assertEquals(json, target.getExpectedJson());
-  }
-  @Test
-  public void testNullSerialization() throws Exception {
-    assertEquals("null", gson.toJson(null));
+    assertThat(target.getExpectedJson()).isEqualTo(json);
   }
 
   @Test
-  public void testEmptyStringDeserialization() throws Exception {
+  public void testNullSerialization() {
+    assertThat(gson.toJson(null)).isEqualTo("null");
+  }
+
+  @Test
+  public void testEmptyStringDeserialization() {
     Object object = gson.fromJson("", Object.class);
-    assertNull(object);
+    assertThat(object).isNull();
   }
 
   @Test
@@ -226,95 +256,92 @@ public class ObjectTest {
   }
 
   @Test
-  public void testNullDeserialization() throws Exception {
+  public void testNullDeserialization() {
     String myNullObject = null;
     Object object = gson.fromJson(myNullObject, Object.class);
-    assertNull(object);
+    assertThat(object).isNull();
   }
 
   @Test
-  public void testNullFieldsSerialization() throws Exception {
+  public void testNullFieldsSerialization() {
     Nested target = new Nested(new BagOfPrimitives(10, 20, false, "stringValue"), null);
-    assertEquals(target.getExpectedJson(), gson.toJson(target));
+    assertThat(gson.toJson(target)).isEqualTo(target.getExpectedJson());
   }
 
   @Test
-  public void testNullFieldsDeserialization() throws Exception {
-    String json = "{\"primitive1\":{\"longValue\":10,\"intValue\":20,\"booleanValue\":false"
-        + ",\"stringValue\":\"stringValue\"}}";
+  public void testNullFieldsDeserialization() {
+    String json =
+        "{\"primitive1\":{\"longValue\":10,\"intValue\":20,\"booleanValue\":false"
+            + ",\"stringValue\":\"stringValue\"}}";
     Nested target = gson.fromJson(json, Nested.class);
-    assertEquals(json, target.getExpectedJson());
+    assertThat(target.getExpectedJson()).isEqualTo(json);
   }
 
   @Test
-  public void testArrayOfObjectsSerialization() throws Exception {
+  public void testArrayOfObjectsSerialization() {
     ArrayOfObjects target = new ArrayOfObjects();
-    assertEquals(target.getExpectedJson(), gson.toJson(target));
+    assertThat(gson.toJson(target)).isEqualTo(target.getExpectedJson());
   }
 
   @Test
-  public void testArrayOfObjectsDeserialization() throws Exception {
+  public void testArrayOfObjectsDeserialization() {
     String json = new ArrayOfObjects().getExpectedJson();
     ArrayOfObjects target = gson.fromJson(json, ArrayOfObjects.class);
-    assertEquals(json, target.getExpectedJson());
+    assertThat(target.getExpectedJson()).isEqualTo(json);
   }
 
   @Test
-  public void testArrayOfArraysSerialization() throws Exception {
+  public void testArrayOfArraysSerialization() {
     ArrayOfArrays target = new ArrayOfArrays();
-    assertEquals(target.getExpectedJson(), gson.toJson(target));
+    assertThat(gson.toJson(target)).isEqualTo(target.getExpectedJson());
   }
 
   @Test
-  public void testArrayOfArraysDeserialization() throws Exception {
+  public void testArrayOfArraysDeserialization() {
     String json = new ArrayOfArrays().getExpectedJson();
     ArrayOfArrays target = gson.fromJson(json, ArrayOfArrays.class);
-    assertEquals(json, target.getExpectedJson());
+    assertThat(target.getExpectedJson()).isEqualTo(json);
   }
 
   @Test
-  public void testArrayOfObjectsAsFields() throws Exception {
+  public void testArrayOfObjectsAsFields() {
     ClassWithObjects classWithObjects = new ClassWithObjects();
     BagOfPrimitives bagOfPrimitives = new BagOfPrimitives();
     String stringValue = "someStringValueInArray";
     String classWithObjectsJson = gson.toJson(classWithObjects);
     String bagOfPrimitivesJson = gson.toJson(bagOfPrimitives);
 
-    ClassWithArray classWithArray = new ClassWithArray(
-        new Object[] { stringValue, classWithObjects, bagOfPrimitives });
+    ClassWithArray classWithArray =
+        new ClassWithArray(new Object[] {stringValue, classWithObjects, bagOfPrimitives});
     String json = gson.toJson(classWithArray);
 
-    assertTrue(json.contains(classWithObjectsJson));
-    assertTrue(json.contains(bagOfPrimitivesJson));
-    assertTrue(json.contains("\"" + stringValue + "\""));
+    assertThat(json).contains(classWithObjectsJson);
+    assertThat(json).contains(bagOfPrimitivesJson);
+    assertThat(json).contains("\"" + stringValue + "\"");
   }
 
-  /**
-   * Created in response to Issue 14: http://code.google.com/p/google-gson/issues/detail?id=14
-   */
+  /** Created in response to Issue 14: http://code.google.com/p/google-gson/issues/detail?id=14 */
   @Test
-  public void testNullArraysDeserialization() throws Exception {
+  public void testNullArraysDeserialization() {
     String json = "{\"array\": null}";
     ClassWithArray target = gson.fromJson(json, ClassWithArray.class);
-    assertNull(target.array);
+    assertThat(target.array).isNull();
   }
 
-  /**
-   * Created in response to Issue 14: http://code.google.com/p/google-gson/issues/detail?id=14
-   */
+  /** Created in response to Issue 14: http://code.google.com/p/google-gson/issues/detail?id=14 */
   @Test
-  public void testNullObjectFieldsDeserialization() throws Exception {
+  public void testNullObjectFieldsDeserialization() {
     String json = "{\"bag\": null}";
     ClassWithObjects target = gson.fromJson(json, ClassWithObjects.class);
-    assertNull(target.bag);
+    assertThat(target.bag).isNull();
   }
 
   @Test
-  public void testEmptyCollectionInAnObjectDeserialization() throws Exception {
+  public void testEmptyCollectionInAnObjectDeserialization() {
     String json = "{\"children\":[]}";
     ClassWithCollectionField target = gson.fromJson(json, ClassWithCollectionField.class);
-    assertNotNull(target);
-    assertTrue(target.children.isEmpty());
+    assertThat(target).isNotNull();
+    assertThat(target.children).isEmpty();
   }
 
   private static class ClassWithCollectionField {
@@ -322,74 +349,134 @@ public class ObjectTest {
   }
 
   @Test
-  public void testPrimitiveArrayInAnObjectDeserialization() throws Exception {
+  public void testPrimitiveArrayInAnObjectDeserialization() {
     String json = "{\"longArray\":[0,1,2,3,4,5,6,7,8,9]}";
     PrimitiveArray target = gson.fromJson(json, PrimitiveArray.class);
-    assertEquals(json, target.getExpectedJson());
+    assertThat(target.getExpectedJson()).isEqualTo(json);
   }
 
-  /**
-   * Created in response to Issue 14: http://code.google.com/p/google-gson/issues/detail?id=14
-   */
+  /** Created in response to Issue 14: http://code.google.com/p/google-gson/issues/detail?id=14 */
   @Test
-  public void testNullPrimitiveFieldsDeserialization() throws Exception {
+  public void testNullPrimitiveFieldsDeserialization() {
     String json = "{\"longValue\":null}";
     BagOfPrimitives target = gson.fromJson(json, BagOfPrimitives.class);
-    assertEquals(BagOfPrimitives.DEFAULT_VALUE, target.longValue);
+    assertThat(target.longValue).isEqualTo(BagOfPrimitives.DEFAULT_VALUE);
   }
 
   @Test
-  public void testEmptyCollectionInAnObjectSerialization() throws Exception {
+  public void testEmptyCollectionInAnObjectSerialization() {
     ClassWithCollectionField target = new ClassWithCollectionField();
-    assertEquals("{\"children\":[]}", gson.toJson(target));
+    assertThat(gson.toJson(target)).isEqualTo("{\"children\":[]}");
   }
 
   @Test
-  public void testPrivateNoArgConstructorDeserialization() throws Exception {
+  public void testPrivateNoArgConstructorDeserialization() {
     ClassWithPrivateNoArgsConstructor target =
-      gson.fromJson("{\"a\":20}", ClassWithPrivateNoArgsConstructor.class);
-    assertEquals(20, target.a);
+        gson.fromJson("{\"a\":20}", ClassWithPrivateNoArgsConstructor.class);
+    assertThat(target.a).isEqualTo(20);
   }
 
   @Test
-  public void testAnonymousLocalClassesSerialization() throws Exception {
-    assertEquals("null", gson.toJson(new ClassWithNoFields() {
-      // empty anonymous class
-    }));
+  public void testAnonymousLocalClassesSerialization() {
+    assertThat(
+            gson.toJson(
+                new ClassWithNoFields() {
+                  // empty anonymous class
+                }))
+        .isEqualTo("null");
+
+    class Local {}
+    assertThat(gson.toJson(new Local())).isEqualTo("null");
   }
 
   @Test
-  public void testAnonymousLocalClassesCustomSerialization() throws Exception {
-    gson = new GsonBuilder()
-        .registerTypeHierarchyAdapter(ClassWithNoFields.class,
-            new JsonSerializer<ClassWithNoFields>() {
-              @Override public JsonElement serialize(
-                  ClassWithNoFields src, Type typeOfSrc, JsonSerializationContext context) {
-                return new JsonObject();
-              }
-            }).create();
+  public void testAnonymousLocalClassesCustomSerialization() {
+    Gson gson =
+        new GsonBuilder()
+            .registerTypeHierarchyAdapter(
+                ClassWithNoFields.class,
+                new JsonSerializer<ClassWithNoFields>() {
+                  @Override
+                  public JsonElement serialize(
+                      ClassWithNoFields src, Type typeOfSrc, JsonSerializationContext context) {
+                    return new JsonPrimitive("custom-value");
+                  }
+                })
+            .create();
 
-    assertEquals("null", gson.toJson(new ClassWithNoFields() {
-      // empty anonymous class
-    }));
+    assertThat(
+            gson.toJson(
+                new ClassWithNoFields() {
+                  // empty anonymous class
+                }))
+        .isEqualTo("\"custom-value\"");
+
+    class Local {}
+    gson =
+        new GsonBuilder()
+            .registerTypeAdapter(
+                Local.class,
+                new JsonSerializer<Local>() {
+                  @Override
+                  public JsonElement serialize(
+                      Local src, Type typeOfSrc, JsonSerializationContext context) {
+                    return new JsonPrimitive("custom-value");
+                  }
+                })
+            .create();
+    assertThat(gson.toJson(new Local())).isEqualTo("\"custom-value\"");
+  }
+
+  @Test
+  public void testAnonymousLocalClassesCustomDeserialization() {
+    Gson gson =
+        new GsonBuilder()
+            .registerTypeHierarchyAdapter(
+                ClassWithNoFields.class,
+                new JsonDeserializer<ClassWithNoFields>() {
+                  @Override
+                  public ClassWithNoFields deserialize(
+                      JsonElement json, Type typeOfT, JsonDeserializationContext context) {
+                    return new ClassWithNoFields();
+                  }
+                })
+            .create();
+
+    assertThat(gson.fromJson("{}", ClassWithNoFields.class)).isNotNull();
+    Class<?> anonymousClass = new ClassWithNoFields() {}.getClass();
+    // Custom deserializer is ignored
+    assertThat(gson.fromJson("{}", anonymousClass)).isNull();
+
+    class Local {}
+    gson =
+        new GsonBuilder()
+            .registerTypeAdapter(
+                Local.class,
+                new JsonDeserializer<Local>() {
+                  @Override
+                  public Local deserialize(
+                      JsonElement json, Type typeOfT, JsonDeserializationContext context) {
+                    throw new AssertionError("should not be called");
+                  }
+                })
+            .create();
+    // Custom deserializer is ignored
+    assertThat(gson.fromJson("{}", Local.class)).isNull();
   }
 
   @Test
   public void testPrimitiveArrayFieldSerialization() {
-    PrimitiveArray target = new PrimitiveArray(new long[] { 1L, 2L, 3L });
-    assertEquals(target.getExpectedJson(), gson.toJson(target));
+    PrimitiveArray target = new PrimitiveArray(new long[] {1L, 2L, 3L});
+    assertThat(gson.toJson(target)).isEqualTo(target.getExpectedJson());
   }
 
-  /**
-   * Tests that a class field with type Object can be serialized properly.
-   * See issue 54
-   */
+  /** Tests that a class field with type Object can be serialized properly. See issue 54 */
   @Test
   public void testClassWithObjectFieldSerialization() {
     ClassWithObjectField obj = new ClassWithObjectField();
     obj.member = "abc";
     String json = gson.toJson(obj);
-    assertTrue(json.contains("abc"));
+    assertThat(json).contains("abc");
   }
 
   private static class ClassWithObjectField {
@@ -402,27 +489,34 @@ public class ObjectTest {
     Parent p = new Parent();
     Parent.Child c = p.new Child();
     String json = gson.toJson(c);
-    assertTrue(json.contains("value2"));
-    assertFalse(json.contains("value1"));
+    assertThat(json).contains("value2");
+    assertThat(json).doesNotContain("value1");
   }
 
   @Test
   public void testInnerClassDeserialization() {
     final Parent p = new Parent();
-    Gson gson = new GsonBuilder().registerTypeAdapter(
-        Parent.Child.class, new InstanceCreator<Parent.Child>() {
-      @Override public Parent.Child createInstance(Type type) {
-        return p.new Child();
-      }
-    }).create();
+    Gson gson =
+        new GsonBuilder()
+            .registerTypeAdapter(
+                Parent.Child.class,
+                new InstanceCreator<Parent.Child>() {
+                  @Override
+                  public Parent.Child createInstance(Type type) {
+                    return p.new Child();
+                  }
+                })
+            .create();
     String json = "{'value2':3}";
     Parent.Child c = gson.fromJson(json, Parent.Child.class);
-    assertEquals(3, c.value2);
+    assertThat(c.value2).isEqualTo(3);
   }
 
   private static class Parent {
     @SuppressWarnings("unused")
     int value1 = 1;
+
+    @SuppressWarnings("ClassCanBeStatic")
     private class Child {
       int value2 = 2;
     }
@@ -430,15 +524,17 @@ public class ObjectTest {
 
   private static class ArrayOfArrays {
     private final BagOfPrimitives[][] elements;
+
     public ArrayOfArrays() {
       elements = new BagOfPrimitives[3][2];
       for (int i = 0; i < elements.length; ++i) {
         BagOfPrimitives[] row = elements[i];
         for (int j = 0; j < row.length; ++j) {
-          row[j] = new BagOfPrimitives(i+j, i*j, false, i+"_"+j);
+          row[j] = new BagOfPrimitives(i + j, i * j, false, i + "_" + j);
         }
       }
     }
+
     public String getExpectedJson() {
       StringBuilder sb = new StringBuilder("{\"elements\":[");
       boolean first = true;
@@ -467,61 +563,56 @@ public class ObjectTest {
 
   private static class ClassWithPrivateNoArgsConstructor {
     public int a;
+
     private ClassWithPrivateNoArgsConstructor() {
       a = 10;
     }
   }
 
-  /**
-   * In response to Issue 41 http://code.google.com/p/google-gson/issues/detail?id=41
-   */
+  /** In response to Issue 41 http://code.google.com/p/google-gson/issues/detail?id=41 */
   @Test
   public void testObjectFieldNamesWithoutQuotesDeserialization() {
     String json = "{longValue:1,'booleanValue':true,\"stringValue\":'bar'}";
     BagOfPrimitives bag = gson.fromJson(json, BagOfPrimitives.class);
-    assertEquals(1, bag.longValue);
-    assertTrue(bag.booleanValue);
-    assertEquals("bar", bag.stringValue);
+    assertThat(bag.longValue).isEqualTo(1);
+    assertThat(bag.booleanValue).isTrue();
+    assertThat(bag.stringValue).isEqualTo("bar");
   }
 
   @Test
   public void testStringFieldWithNumberValueDeserialization() {
     String json = "{\"stringValue\":1}";
     BagOfPrimitives bag = gson.fromJson(json, BagOfPrimitives.class);
-    assertEquals("1", bag.stringValue);
+    assertThat(bag.stringValue).isEqualTo("1");
 
     json = "{\"stringValue\":1.5E+6}";
     bag = gson.fromJson(json, BagOfPrimitives.class);
-    assertEquals("1.5E+6", bag.stringValue);
+    assertThat(bag.stringValue).isEqualTo("1.5E+6");
 
     json = "{\"stringValue\":true}";
     bag = gson.fromJson(json, BagOfPrimitives.class);
-    assertEquals("true", bag.stringValue);
+    assertThat(bag.stringValue).isEqualTo("true");
   }
 
-  /**
-   * Created to reproduce issue 140
-   */
+  /** Created to reproduce issue 140 */
   @Test
   public void testStringFieldWithEmptyValueSerialization() {
     ClassWithEmptyStringFields target = new ClassWithEmptyStringFields();
     target.a = "5794749";
     String json = gson.toJson(target);
-    assertTrue(json.contains("\"a\":\"5794749\""));
-    assertTrue(json.contains("\"b\":\"\""));
-    assertTrue(json.contains("\"c\":\"\""));
+    assertThat(json).contains("\"a\":\"5794749\"");
+    assertThat(json).contains("\"b\":\"\"");
+    assertThat(json).contains("\"c\":\"\"");
   }
 
-  /**
-   * Created to reproduce issue 140
-   */
+  /** Created to reproduce issue 140 */
   @Test
   public void testStringFieldWithEmptyValueDeserialization() {
     String json = "{a:\"5794749\",b:\"\",c:\"\"}";
     ClassWithEmptyStringFields target = gson.fromJson(json, ClassWithEmptyStringFields.class);
-    assertEquals("5794749", target.a);
-    assertEquals("", target.b);
-    assertEquals("", target.c);
+    assertThat(target.a).isEqualTo("5794749");
+    assertThat(target.b).isEqualTo("");
+    assertThat(target.c).isEqualTo("");
   }
 
   private static class ClassWithEmptyStringFields {
@@ -535,29 +626,27 @@ public class ObjectTest {
     Gson gson = new GsonBuilder().serializeNulls().create();
     JsonObject obj = new JsonObject();
     String json = gson.toJson(obj);
-    assertEquals("{}", json);
+    assertThat(json).isEqualTo("{}");
   }
 
-  /**
-   * Test for issue 215.
-   */
+  /** Test for issue 215. */
   @Test
   public void testSingletonLists() {
     Gson gson = new Gson();
     Product product = new Product();
-    assertEquals("{\"attributes\":[],\"departments\":[]}",
-        gson.toJson(product));
-    gson.fromJson(gson.toJson(product), Product.class);
+    assertThat(gson.toJson(product)).isEqualTo("{\"attributes\":[],\"departments\":[]}");
+    Product unused1 = gson.fromJson(gson.toJson(product), Product.class);
 
     product.departments.add(new Department());
-    assertEquals("{\"attributes\":[],\"departments\":[{\"name\":\"abc\",\"code\":\"123\"}]}",
-        gson.toJson(product));
-    gson.fromJson(gson.toJson(product), Product.class);
+    assertThat(gson.toJson(product))
+        .isEqualTo("{\"attributes\":[],\"departments\":[{\"name\":\"abc\",\"code\":\"123\"}]}");
+    Product unused2 = gson.fromJson(gson.toJson(product), Product.class);
 
     product.attributes.add("456");
-    assertEquals("{\"attributes\":[\"456\"],\"departments\":[{\"name\":\"abc\",\"code\":\"123\"}]}",
-        gson.toJson(product));
-    gson.fromJson(gson.toJson(product), Product.class);
+    assertThat(gson.toJson(product))
+        .isEqualTo(
+            "{\"attributes\":[\"456\"],\"departments\":[{\"name\":\"abc\",\"code\":\"123\"}]}");
+    Product unused3 = gson.fromJson(gson.toJson(product), Product.class);
   }
 
   static final class Department {
@@ -572,14 +661,12 @@ public class ObjectTest {
 
   // http://code.google.com/p/google-gson/issues/detail?id=270
   @Test
+  @SuppressWarnings("JavaUtilDate")
   public void testDateAsMapObjectField() {
     HasObjectMap a = new HasObjectMap();
     a.map.put("date", new Date(0));
-    if (JavaVersion.isJava9OrLater()) {
-      assertEquals("{\"map\":{\"date\":\"Dec 31, 1969, 4:00:00 PM\"}}", gson.toJson(a));
-    } else {
-      assertEquals("{\"map\":{\"date\":\"Dec 31, 1969 4:00:00 PM\"}}", gson.toJson(a));
-    }
+    assertThat(gson.toJson(a))
+        .matches("\\{\"map\":\\{\"date\":\"Dec 31, 1969,? 4:00:00\\hPM\"\\}\\}");
   }
 
   static class HasObjectMap {
@@ -589,48 +676,50 @@ public class ObjectTest {
   /**
    * Tests serialization of a class with {@code static} field.
    *
-   * <p>Important: It is not documented that this is officially supported; this
-   * test just checks the current behavior.
+   * <p>Important: It is not documented that this is officially supported; this test just checks the
+   * current behavior.
    */
   @Test
   public void testStaticFieldSerialization() {
     // By default Gson should ignore static fields
-    assertEquals("{}", gson.toJson(new ClassWithStaticField()));
+    assertThat(gson.toJson(new ClassWithStaticField())).isEqualTo("{}");
 
-    Gson gson = new GsonBuilder()
-        // Include static fields
-        .excludeFieldsWithModifiers(0)
-        .create();
+    Gson gson =
+        new GsonBuilder()
+            // Include static fields
+            .excludeFieldsWithModifiers(0)
+            .create();
 
     String json = gson.toJson(new ClassWithStaticField());
-    assertEquals("{\"s\":\"initial\"}", json);
+    assertThat(json).isEqualTo("{\"s\":\"initial\"}");
 
     json = gson.toJson(new ClassWithStaticFinalField());
-    assertEquals("{\"s\":\"initial\"}", json);
+    assertThat(json).isEqualTo("{\"s\":\"initial\"}");
   }
 
   /**
    * Tests deserialization of a class with {@code static} field.
    *
-   * <p>Important: It is not documented that this is officially supported; this
-   * test just checks the current behavior.
+   * <p>Important: It is not documented that this is officially supported; this test just checks the
+   * current behavior.
    */
   @Test
   public void testStaticFieldDeserialization() {
     // By default Gson should ignore static fields
-    gson.fromJson("{\"s\":\"custom\"}", ClassWithStaticField.class);
-    assertEquals("initial", ClassWithStaticField.s);
+    ClassWithStaticField unused = gson.fromJson("{\"s\":\"custom\"}", ClassWithStaticField.class);
+    assertThat(ClassWithStaticField.s).isEqualTo("initial");
 
-    Gson gson = new GsonBuilder()
-        // Include static fields
-        .excludeFieldsWithModifiers(0)
-        .create();
+    Gson gson =
+        new GsonBuilder()
+            // Include static fields
+            .excludeFieldsWithModifiers(0)
+            .create();
 
     String oldValue = ClassWithStaticField.s;
     try {
       ClassWithStaticField obj = gson.fromJson("{\"s\":\"custom\"}", ClassWithStaticField.class);
-      assertNotNull(obj);
-      assertEquals("custom", ClassWithStaticField.s);
+      assertThat(obj).isNotNull();
+      assertThat(ClassWithStaticField.s).isEqualTo("custom");
     } finally {
       ClassWithStaticField.s = oldValue;
     }
@@ -639,15 +728,20 @@ public class ObjectTest {
       gson.fromJson("{\"s\":\"custom\"}", ClassWithStaticFinalField.class);
       fail();
     } catch (JsonIOException e) {
-      assertEquals("Cannot set value of 'static final' field 'com.google.gson.functional.ObjectTest$ClassWithStaticFinalField#s'",
-          e.getMessage());
+      assertThat(e)
+          .hasMessageThat()
+          .isEqualTo(
+              "Cannot set value of 'static final' field"
+                  + " 'com.google.gson.functional.ObjectTest$ClassWithStaticFinalField#s'");
     }
   }
 
+  @SuppressWarnings({"PrivateConstructorForUtilityClass", "NonFinalStaticField"})
   static class ClassWithStaticField {
     static String s = "initial";
   }
 
+  @SuppressWarnings("PrivateConstructorForUtilityClass")
   static class ClassWithStaticFinalField {
     static final String s = "initial";
   }
@@ -660,12 +754,17 @@ public class ObjectTest {
     }
     // TODO: Adjust this once Gson throws more specific exception type
     catch (RuntimeException e) {
-      assertEquals("Failed to invoke constructor 'com.google.gson.functional.ObjectTest$ClassWithThrowingConstructor()' with no args",
-          e.getMessage());
-      assertSame(ClassWithThrowingConstructor.thrownException, e.getCause());
+      assertThat(e)
+          .hasMessageThat()
+          .isEqualTo(
+              "Failed to invoke constructor"
+                  + " 'com.google.gson.functional.ObjectTest$ClassWithThrowingConstructor()' with"
+                  + " no args");
+      assertThat(e).hasCauseThat().isSameInstanceAs(ClassWithThrowingConstructor.thrownException);
     }
   }
 
+  @SuppressWarnings("StaticAssignmentOfThrowable")
   static class ClassWithThrowingConstructor {
     static final RuntimeException thrownException = new RuntimeException("Custom exception");
 

@@ -15,9 +15,7 @@
  */
 package com.google.gson.functional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
 import com.google.gson.Gson;
@@ -30,7 +28,6 @@ import com.google.gson.common.TestTypes.BagOfPrimitives;
 import com.google.gson.common.TestTypes.ClassOverridingEquals;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
-import java.util.Arrays;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,27 +52,29 @@ public class UncategorizedTest {
     try {
       gson.fromJson("adfasdf1112,,,\":", BagOfPrimitives.class);
       fail("Bad JSON should throw a ParseException");
-    } catch (JsonParseException expected) { }
+    } catch (JsonParseException expected) {
+    }
 
     try {
       gson.fromJson("{adfasdf1112,,,\":}", BagOfPrimitives.class);
       fail("Bad JSON should throw a ParseException");
-    } catch (JsonParseException expected) { }
+    } catch (JsonParseException expected) {
+    }
   }
 
   @Test
-  public void testObjectEqualButNotSameSerialization() throws Exception {
+  public void testObjectEqualButNotSameSerialization() {
     ClassOverridingEquals objA = new ClassOverridingEquals();
     ClassOverridingEquals objB = new ClassOverridingEquals();
     objB.ref = objA;
     String json = gson.toJson(objB);
-    assertEquals(objB.getExpectedJson(), json);
+    assertThat(json).isEqualTo(objB.getExpectedJson());
   }
 
   @Test
   public void testStaticFieldsAreNotSerialized() {
     BagOfPrimitives target = new BagOfPrimitives();
-    assertFalse(gson.toJson(target).contains("DEFAULT_VALUE"));
+    assertThat(gson.toJson(target)).doesNotContain("DEFAULT_VALUE");
   }
 
   @Test
@@ -83,7 +82,7 @@ public class UncategorizedTest {
     BagOfPrimitives bag = new BagOfPrimitives();
     String json = gson.toJson(bag);
     BagOfPrimitives deserialized = gson.fromJson(json, BagOfPrimitives.class);
-    assertEquals(bag, deserialized);
+    assertThat(deserialized).isEqualTo(bag);
   }
 
   /**
@@ -96,13 +95,13 @@ public class UncategorizedTest {
     Gson gson = new GsonBuilder().registerTypeAdapter(Base.class, new BaseTypeAdapter()).create();
     String json = "{\"opType\":\"OP1\"}";
     Base base = gson.fromJson(json, Base.class);
-    assertTrue(base instanceof Derived1);
-    assertEquals(OperationType.OP1, base.opType);
+    assertThat(base).isInstanceOf(Derived1.class);
+    assertThat(base.opType).isEqualTo(OperationType.OP1);
 
     json = "{\"opType\":\"OP2\"}";
     base = gson.fromJson(json, Base.class);
-    assertTrue(base instanceof Derived2);
-    assertEquals(OperationType.OP2, base.opType);
+    assertThat(base).isInstanceOf(Derived2.class);
+    assertThat(base.opType).isEqualTo(OperationType.OP2);
   }
 
   /**
@@ -111,31 +110,43 @@ public class UncategorizedTest {
    */
   @Test
   public void testTrailingWhitespace() throws Exception {
-    List<Integer> integers = gson.fromJson("[1,2,3]  \n\n  ",
-        new TypeToken<List<Integer>>() {}.getType());
-    assertEquals(Arrays.asList(1, 2, 3), integers);
+    List<Integer> integers =
+        gson.fromJson("[1,2,3]  \n\n  ", new TypeToken<List<Integer>>() {}.getType());
+    assertThat(integers).containsExactly(1, 2, 3).inOrder();
   }
 
-  private enum OperationType { OP1, OP2 }
+  private enum OperationType {
+    OP1,
+    OP2
+  }
+
   private static class Base {
     OperationType opType;
   }
+
   private static class Derived1 extends Base {
-    Derived1() { opType = OperationType.OP1; }
+    Derived1() {
+      opType = OperationType.OP1;
+    }
   }
+
   private static class Derived2 extends Base {
-    Derived2() { opType = OperationType.OP2; }
+    Derived2() {
+      opType = OperationType.OP2;
+    }
   }
+
   private static class BaseTypeAdapter implements JsonDeserializer<Base> {
-    @Override public Base deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+    @Override
+    public Base deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
         throws JsonParseException {
       String opTypeStr = json.getAsJsonObject().get("opType").getAsString();
       OperationType opType = OperationType.valueOf(opTypeStr);
       switch (opType) {
-      case OP1:
-        return new Derived1();
-      case OP2:
-        return new Derived2();
+        case OP1:
+          return new Derived1();
+        case OP2:
+          return new Derived2();
       }
       throw new JsonParseException("unknown type: " + json);
     }

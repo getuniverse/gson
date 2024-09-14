@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2022 Happeo Oy.
- * Copyright (C) 2021-2022 The Gson authors
+ * Copyright (C) 2021 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,15 @@
  *
  * This file has been modified by Happeo Oy.
  */
+
 package com.google.gson.functional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
-import com.google.gson.TypeAdapter;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
-import java.io.IOException;
-import java.lang.reflect.ReflectPermission;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.security.Permission;
 import java.util.Collections;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Test;
 
 public class ReflectionAccessTest {
@@ -44,24 +32,36 @@ public class ReflectionAccessTest {
   private static class ClassWithPrivateMembers {
     private String s;
 
-    private ClassWithPrivateMembers() {
+    private ClassWithPrivateMembers() {}
+  }
+
+  private static JsonIOException assertInaccessibleException(String json, Class<?> toDeserialize) {
+    Gson gson = new Gson();
+    try {
+      gson.fromJson(json, toDeserialize);
+      throw new AssertionError(
+          "Missing exception; test has to be run with `--illegal-access=deny`");
+    } catch (JsonSyntaxException e) {
+      throw new AssertionError(
+          "Unexpected exception; test has to be run with `--illegal-access=deny`", e);
+    } catch (JsonIOException expected) {
+      assertThat(expected)
+          .hasMessageThat()
+          .endsWith(
+              "\n"
+                  + "See https://github.com/google/gson/blob/main/Troubleshooting.md#reflection-inaccessible");
+      // Return exception for further assertions
+      return expected;
     }
   }
 
-  private static Class<?> loadClassWithDifferentClassLoader(Class<?> c) throws Exception {
-    URL url = c.getProtectionDomain().getCodeSource().getLocation();
-    URLClassLoader classLoader = new URLClassLoader(new URL[] { url }, null);
-    return classLoader.loadClass(c.getName());
-  }
-
   /**
-   * Test serializing an instance of a non-accessible internal class, but where
-   * Gson supports serializing one of its superinterfaces.
+   * Test serializing an instance of a non-accessible internal class, but where Gson supports
+   * serializing one of its superinterfaces.
    *
-   * <p>Here {@link Collections#emptyList()} is used which returns an instance
-   * of the internal class {@code java.util.Collections.EmptyList}. Gson should
-   * serialize the object as {@code List} despite the internal class not being
-   * accessible.
+   * <p>Here {@link Collections#emptyList()} is used which returns an instance of the internal class
+   * {@code java.util.Collections.EmptyList}. Gson should serialize the object as {@code List}
+   * despite the internal class not being accessible.
    *
    * <p>See https://github.com/google/gson/issues/1875
    */
@@ -69,20 +69,29 @@ public class ReflectionAccessTest {
   public void testSerializeInternalImplementationObject() {
     Gson gson = new Gson();
     String json = gson.toJson(Collections.emptyList());
-    assertEquals("[]", json);
+    assertThat(json).isEqualTo("[]");
 
     // But deserialization should fail
     Class<?> internalClass = Collections.emptyList().getClass();
-    try {
-      gson.fromJson("[]", internalClass);
-      fail("Missing exception; test has to be run with `--illegal-access=deny`");
-    } catch (JsonSyntaxException e) {
-      fail("Unexpected exception; test has to be run with `--illegal-access=deny`");
-    } catch (JsonIOException expected) {
-      assertTrue(expected.getMessage().startsWith(
-          "Failed making constructor 'java.util.Collections$EmptyList()' accessible;"
-          + " either increase its visibility or write a custom InstanceCreator or TypeAdapter for its declaring type: "
-      ));
-    }
+    JsonIOException exception = assertInaccessibleException("[]", internalClass);
+    // Don't check exact class name because it is a JDK implementation detail
+    assertThat(exception).hasMessageThat().startsWith("Failed making constructor '");
+    assertThat(exception)
+        .hasMessageThat()
+        .contains(
+            "' accessible; either increase its visibility or"
+                + " write a custom InstanceCreator or TypeAdapter for its declaring type: ");
+  }
+
+  @Test
+  public void testInaccessibleField() {
+    JsonIOException exception = assertInaccessibleException("{}", Throwable.class);
+    // Don't check exact field name because it is a JDK implementation detail
+    assertThat(exception).hasMessageThat().startsWith("Failed making field 'java.lang.Throwable#");
+    assertThat(exception)
+        .hasMessageThat()
+        .contains(
+            "' accessible; either increase its visibility or"
+                + " write a custom TypeAdapter for its declaring type.");
   }
 }

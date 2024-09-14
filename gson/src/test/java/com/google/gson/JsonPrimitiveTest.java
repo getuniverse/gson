@@ -16,10 +16,8 @@
 
 package com.google.gson;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static org.junit.Assert.fail;
 
 import com.google.gson.common.MoreAsserts;
@@ -60,50 +58,50 @@ public class JsonPrimitiveTest {
   }
 
   @Test
-  public void testBoolean() throws Exception {
+  public void testBoolean() {
     JsonPrimitive json = new JsonPrimitive(Boolean.TRUE);
 
-    assertTrue(json.isBoolean());
-    assertTrue(json.getAsBoolean());
+    assertThat(json.isBoolean()).isTrue();
+    assertThat(json.getAsBoolean()).isTrue();
 
     // Extra support for booleans
     json = new JsonPrimitive(1);
-    assertFalse(json.getAsBoolean());
+    assertThat(json.getAsBoolean()).isFalse();
 
     json = new JsonPrimitive("1");
-    assertFalse(json.getAsBoolean());
+    assertThat(json.getAsBoolean()).isFalse();
 
     json = new JsonPrimitive("true");
-    assertTrue(json.getAsBoolean());
+    assertThat(json.getAsBoolean()).isTrue();
 
     json = new JsonPrimitive("TrUe");
-    assertTrue(json.getAsBoolean());
+    assertThat(json.getAsBoolean()).isTrue();
 
     json = new JsonPrimitive("1.3");
-    assertFalse(json.getAsBoolean());
+    assertThat(json.getAsBoolean()).isFalse();
   }
 
   @Test
-  public void testParsingStringAsBoolean() throws Exception {
+  public void testParsingStringAsBoolean() {
     JsonPrimitive json = new JsonPrimitive("true");
 
-    assertFalse(json.isBoolean());
-    assertTrue(json.getAsBoolean());
+    assertThat(json.isBoolean()).isFalse();
+    assertThat(json.getAsBoolean()).isTrue();
   }
 
   @Test
-  public void testParsingStringAsNumber() throws Exception {
+  public void testParsingStringAsNumber() {
     JsonPrimitive json = new JsonPrimitive("1");
 
-    assertFalse(json.isNumber());
-    assertEquals(1D, json.getAsDouble(), 0.00001);
-    assertEquals(1F, json.getAsFloat(), 0.00001);
-    assertEquals(1, json.getAsInt());
-    assertEquals(1L, json.getAsLong());
-    assertEquals((short) 1, json.getAsShort());
-    assertEquals((byte) 1, json.getAsByte());
-    assertEquals(new BigInteger("1"), json.getAsBigInteger());
-    assertEquals(new BigDecimal("1"), json.getAsBigDecimal());
+    assertThat(json.isNumber()).isFalse();
+    assertThat(json.getAsDouble()).isEqualTo(1.0);
+    assertThat(json.getAsFloat()).isEqualTo(1F);
+    assertThat(json.getAsInt()).isEqualTo(1);
+    assertThat(json.getAsLong()).isEqualTo(1L);
+    assertThat(json.getAsShort()).isEqualTo((short) 1);
+    assertThat(json.getAsByte()).isEqualTo((byte) 1);
+    assertThat(json.getAsBigInteger()).isEqualTo(new BigInteger("1"));
+    assertThat(json.getAsBigDecimal()).isEqualTo(new BigDecimal("1"));
   }
 
   @Test
@@ -113,161 +111,183 @@ public class JsonPrimitiveTest {
       json.getAsNumber();
       fail();
     } catch (UnsupportedOperationException e) {
-      assertEquals("Primitive is neither a number nor a string", e.getMessage());
+      assertThat(e).hasMessageThat().isEqualTo("Primitive is neither a number nor a string");
     }
   }
 
   @SuppressWarnings("deprecation")
   @Test
-  public void testStringsAndChar() throws Exception {
+  public void testStringsAndChar() {
     JsonPrimitive json = new JsonPrimitive("abc");
-    assertTrue(json.isString());
-    assertEquals('a', json.getAsCharacter());
-    assertEquals("abc", json.getAsString());
+    assertThat(json.isString()).isTrue();
+    assertThat(json.getAsCharacter()).isEqualTo('a');
+    assertThat(json.getAsString()).isEqualTo("abc");
 
     json = new JsonPrimitive('z');
-    assertTrue(json.isString());
-    assertEquals('z', json.getAsCharacter());
-    assertEquals("z", json.getAsString());
+    assertThat(json.isString()).isTrue();
+    assertThat(json.getAsCharacter()).isEqualTo('z');
+    assertThat(json.getAsString()).isEqualTo("z");
 
     json = new JsonPrimitive(true);
-    assertEquals("true", json.getAsString());
+    assertThat(json.getAsString()).isEqualTo("true");
 
     json = new JsonPrimitive("");
-    assertEquals("", json.getAsString());
+    assertThat(json.getAsString()).isEqualTo("");
     try {
       json.getAsCharacter();
       fail();
     } catch (UnsupportedOperationException e) {
-      assertEquals("String value is empty", e.getMessage());
+      assertThat(e).hasMessageThat().isEqualTo("String value is empty");
     }
   }
 
   @Test
-  public void testExponential() throws Exception {
+  public void testExponential() {
     JsonPrimitive json = new JsonPrimitive("1E+7");
 
-    assertEquals(new BigDecimal("1E+7"), json.getAsBigDecimal());
-    assertEquals(1E+7, json.getAsDouble(), 0.00001);
-    assertEquals(1E+7, json.getAsDouble(), 0.00001);
+    assertThat(json.getAsBigDecimal()).isEqualTo(new BigDecimal("1E+7"));
+    assertThat(json.getAsDouble()).isEqualTo(1E+7);
 
     try {
       json.getAsInt();
       fail("Integers can not handle exponents like this.");
-    } catch (NumberFormatException expected) { }
+    } catch (NumberFormatException expected) {
+    }
   }
 
   @Test
   public void testByteEqualsShort() {
-    JsonPrimitive p1 = new JsonPrimitive(Byte.valueOf((byte)10));
-    JsonPrimitive p2 = new JsonPrimitive(Short.valueOf((short)10));
-    assertEquals(p1, p2);
-    assertEquals(p1.hashCode(), p2.hashCode());
+    JsonPrimitive p1 = new JsonPrimitive((byte) 10);
+    JsonPrimitive p2 = new JsonPrimitive((short) 10);
+    assertThat(p1).isEqualTo(p2);
+    assertThat(p1.hashCode()).isEqualTo(p2.hashCode());
   }
 
   @Test
   public void testByteEqualsInteger() {
-    JsonPrimitive p1 = new JsonPrimitive(Byte.valueOf((byte)10));
-    JsonPrimitive p2 = new JsonPrimitive(Integer.valueOf(10));
-    assertEquals(p1, p2);
-    assertEquals(p1.hashCode(), p2.hashCode());
+    JsonPrimitive p1 = new JsonPrimitive((byte) 10);
+    JsonPrimitive p2 = new JsonPrimitive(10);
+    assertThat(p1).isEqualTo(p2);
+    assertThat(p1.hashCode()).isEqualTo(p2.hashCode());
   }
 
   @Test
   public void testByteEqualsLong() {
-    JsonPrimitive p1 = new JsonPrimitive(Byte.valueOf((byte)10));
-    JsonPrimitive p2 = new JsonPrimitive(Long.valueOf(10L));
-    assertEquals(p1, p2);
-    assertEquals(p1.hashCode(), p2.hashCode());
+    JsonPrimitive p1 = new JsonPrimitive((byte) 10);
+    JsonPrimitive p2 = new JsonPrimitive(10L);
+    assertThat(p1).isEqualTo(p2);
+    assertThat(p1.hashCode()).isEqualTo(p2.hashCode());
   }
 
   @Test
   public void testByteEqualsBigInteger() {
-    JsonPrimitive p1 = new JsonPrimitive(Byte.valueOf((byte)10));
+    JsonPrimitive p1 = new JsonPrimitive((byte) 10);
     JsonPrimitive p2 = new JsonPrimitive(new BigInteger("10"));
-    assertEquals(p1, p2);
-    assertEquals(p1.hashCode(), p2.hashCode());
+    assertThat(p1).isEqualTo(p2);
+    assertThat(p1.hashCode()).isEqualTo(p2.hashCode());
   }
 
   @Test
   public void testShortEqualsInteger() {
-    JsonPrimitive p1 = new JsonPrimitive(Short.valueOf((short)10));
-    JsonPrimitive p2 = new JsonPrimitive(Integer.valueOf(10));
-    assertEquals(p1, p2);
-    assertEquals(p1.hashCode(), p2.hashCode());
+    JsonPrimitive p1 = new JsonPrimitive((short) 10);
+    JsonPrimitive p2 = new JsonPrimitive(10);
+    assertThat(p1).isEqualTo(p2);
+    assertThat(p1.hashCode()).isEqualTo(p2.hashCode());
   }
 
   @Test
   public void testShortEqualsLong() {
-    JsonPrimitive p1 = new JsonPrimitive(Short.valueOf((short)10));
-    JsonPrimitive p2 = new JsonPrimitive(Long.valueOf(10));
-    assertEquals(p1, p2);
-    assertEquals(p1.hashCode(), p2.hashCode());
+    JsonPrimitive p1 = new JsonPrimitive((short) 10);
+    JsonPrimitive p2 = new JsonPrimitive(10L);
+    assertThat(p1).isEqualTo(p2);
+    assertThat(p1.hashCode()).isEqualTo(p2.hashCode());
   }
 
   @Test
   public void testShortEqualsBigInteger() {
-    JsonPrimitive p1 = new JsonPrimitive(Short.valueOf((short)10));
+    JsonPrimitive p1 = new JsonPrimitive((short) 10);
     JsonPrimitive p2 = new JsonPrimitive(new BigInteger("10"));
-    assertEquals(p1, p2);
-    assertEquals(p1.hashCode(), p2.hashCode());
+    assertThat(p1).isEqualTo(p2);
+    assertThat(p1.hashCode()).isEqualTo(p2.hashCode());
   }
 
   @Test
   public void testIntegerEqualsLong() {
-    JsonPrimitive p1 = new JsonPrimitive(Integer.valueOf(10));
-    JsonPrimitive p2 = new JsonPrimitive(Long.valueOf(10L));
-    assertEquals(p1, p2);
-    assertEquals(p1.hashCode(), p2.hashCode());
+    JsonPrimitive p1 = new JsonPrimitive(10);
+    JsonPrimitive p2 = new JsonPrimitive(10L);
+    assertThat(p1).isEqualTo(p2);
+    assertThat(p1.hashCode()).isEqualTo(p2.hashCode());
   }
 
   @Test
   public void testIntegerEqualsBigInteger() {
-    JsonPrimitive p1 = new JsonPrimitive(Integer.valueOf(10));
+    JsonPrimitive p1 = new JsonPrimitive(10);
     JsonPrimitive p2 = new JsonPrimitive(new BigInteger("10"));
-    assertEquals(p1, p2);
-    assertEquals(p1.hashCode(), p2.hashCode());
+    assertThat(p1).isEqualTo(p2);
+    assertThat(p1.hashCode()).isEqualTo(p2.hashCode());
   }
 
   @Test
   public void testLongEqualsBigInteger() {
-    JsonPrimitive p1 = new JsonPrimitive(Long.valueOf(10L));
+    JsonPrimitive p1 = new JsonPrimitive(10L);
     JsonPrimitive p2 = new JsonPrimitive(new BigInteger("10"));
-    assertEquals(p1, p2);
-    assertEquals(p1.hashCode(), p2.hashCode());
+    assertThat(p1).isEqualTo(p2);
+    assertThat(p1.hashCode()).isEqualTo(p2.hashCode());
   }
 
   @Test
   public void testFloatEqualsDouble() {
-    JsonPrimitive p1 = new JsonPrimitive(Float.valueOf(10.25F));
-    JsonPrimitive p2 = new JsonPrimitive(Double.valueOf(10.25D));
-    assertEquals(p1, p2);
-    assertEquals(p1.hashCode(), p2.hashCode());
+    JsonPrimitive p1 = new JsonPrimitive(10.25F);
+    JsonPrimitive p2 = new JsonPrimitive(10.25D);
+    assertThat(p1).isEqualTo(p2);
+    assertThat(p1.hashCode()).isEqualTo(p2.hashCode());
   }
 
   @Test
   public void testFloatEqualsBigDecimal() {
-    JsonPrimitive p1 = new JsonPrimitive(Float.valueOf(10.25F));
+    JsonPrimitive p1 = new JsonPrimitive(10.25F);
     JsonPrimitive p2 = new JsonPrimitive(new BigDecimal("10.25"));
-    assertEquals(p1, p2);
-    assertEquals(p1.hashCode(), p2.hashCode());
+    assertThat(p1).isEqualTo(p2);
+    assertThat(p1.hashCode()).isEqualTo(p2.hashCode());
   }
 
   @Test
   public void testDoubleEqualsBigDecimal() {
-    JsonPrimitive p1 = new JsonPrimitive(Double.valueOf(10.25D));
+    JsonPrimitive p1 = new JsonPrimitive(10.25D);
     JsonPrimitive p2 = new JsonPrimitive(new BigDecimal("10.25"));
-    assertEquals(p1, p2);
-    assertEquals(p1.hashCode(), p2.hashCode());
+    assertThat(p1).isEqualTo(p2);
+    assertThat(p1.hashCode()).isEqualTo(p2.hashCode());
   }
 
   @Test
-  public void testValidJsonOnToString() throws Exception {
+  public void testToString() {
     JsonPrimitive json = new JsonPrimitive("Some\nEscaped\nValue");
-    assertEquals("\"Some\\nEscaped\\nValue\"", json.toString());
+    assertThat(json.toString()).isEqualTo("\"Some\\nEscaped\\nValue\"");
+
+    json = new JsonPrimitive("");
+    assertThat(json.toString()).isEqualTo("\"\"");
 
     json = new JsonPrimitive(new BigDecimal("1.333"));
-    assertEquals("1.333", json.toString());
+    assertThat(json.toString()).isEqualTo("1.333");
+
+    // Preserves trailing 0
+    json = new JsonPrimitive(new BigDecimal("1.0000"));
+    assertThat(json.toString()).isEqualTo("1.0000");
+
+    json = new JsonPrimitive(Float.NaN);
+    assertThat(json.toString()).isEqualTo("NaN");
+
+    json = new JsonPrimitive(Double.NEGATIVE_INFINITY);
+    assertThat(json.toString()).isEqualTo("-Infinity");
+
+    json = new JsonPrimitive('a');
+    assertThat(json.toString()).isEqualTo("\"a\"");
+
+    json = new JsonPrimitive('\0');
+    assertThat(json.toString()).isEqualTo("\"\\u0000\"");
+
+    json = new JsonPrimitive(true);
+    assertThat(json.toString()).isEqualTo("true");
   }
 
   @Test
@@ -277,48 +297,97 @@ public class JsonPrimitiveTest {
     MoreAsserts.assertEqualsAndHashCode(new JsonPrimitive(5L), new JsonPrimitive(5L));
     MoreAsserts.assertEqualsAndHashCode(new JsonPrimitive('a'), new JsonPrimitive('a'));
     MoreAsserts.assertEqualsAndHashCode(new JsonPrimitive(Float.NaN), new JsonPrimitive(Float.NaN));
-    MoreAsserts.assertEqualsAndHashCode(new JsonPrimitive(Float.NEGATIVE_INFINITY),
-        new JsonPrimitive(Float.NEGATIVE_INFINITY));
-    MoreAsserts.assertEqualsAndHashCode(new JsonPrimitive(Float.POSITIVE_INFINITY),
-        new JsonPrimitive(Float.POSITIVE_INFINITY));
-    MoreAsserts.assertEqualsAndHashCode(new JsonPrimitive(Double.NaN), new JsonPrimitive(Double.NaN));
-    MoreAsserts.assertEqualsAndHashCode(new JsonPrimitive(Double.NEGATIVE_INFINITY),
-        new JsonPrimitive(Double.NEGATIVE_INFINITY));
-    MoreAsserts.assertEqualsAndHashCode(new JsonPrimitive(Double.POSITIVE_INFINITY),
-        new JsonPrimitive(Double.POSITIVE_INFINITY));
-    assertFalse(new JsonPrimitive("a").equals(new JsonPrimitive("b")));
-    assertFalse(new JsonPrimitive(true).equals(new JsonPrimitive(false)));
-    assertFalse(new JsonPrimitive(0).equals(new JsonPrimitive(1)));
+    MoreAsserts.assertEqualsAndHashCode(
+        new JsonPrimitive(Float.NEGATIVE_INFINITY), new JsonPrimitive(Float.NEGATIVE_INFINITY));
+    MoreAsserts.assertEqualsAndHashCode(
+        new JsonPrimitive(Float.POSITIVE_INFINITY), new JsonPrimitive(Float.POSITIVE_INFINITY));
+    MoreAsserts.assertEqualsAndHashCode(
+        new JsonPrimitive(Double.NaN), new JsonPrimitive(Double.NaN));
+    MoreAsserts.assertEqualsAndHashCode(
+        new JsonPrimitive(Double.NEGATIVE_INFINITY), new JsonPrimitive(Double.NEGATIVE_INFINITY));
+    MoreAsserts.assertEqualsAndHashCode(
+        new JsonPrimitive(Double.POSITIVE_INFINITY), new JsonPrimitive(Double.POSITIVE_INFINITY));
+    assertThat(new JsonPrimitive("a").equals(new JsonPrimitive("b"))).isFalse();
+    assertThat(new JsonPrimitive(true).equals(new JsonPrimitive(false))).isFalse();
+    assertThat(new JsonPrimitive(0).equals(new JsonPrimitive(1))).isFalse();
   }
 
   @Test
   public void testEqualsAcrossTypes() {
     MoreAsserts.assertEqualsAndHashCode(new JsonPrimitive("a"), new JsonPrimitive('a'));
-    MoreAsserts.assertEqualsAndHashCode(new JsonPrimitive(new BigInteger("0")), new JsonPrimitive(0));
+    MoreAsserts.assertEqualsAndHashCode(
+        new JsonPrimitive(new BigInteger("0")), new JsonPrimitive(0));
     MoreAsserts.assertEqualsAndHashCode(new JsonPrimitive(0), new JsonPrimitive(0L));
-    MoreAsserts.assertEqualsAndHashCode(new JsonPrimitive(new BigInteger("0")), new JsonPrimitive(0));
-    MoreAsserts.assertEqualsAndHashCode(new JsonPrimitive(Float.NaN), new JsonPrimitive(Double.NaN));
+    MoreAsserts.assertEqualsAndHashCode(
+        new JsonPrimitive(new BigDecimal("0")), new JsonPrimitive(0));
+    MoreAsserts.assertEqualsAndHashCode(
+        new JsonPrimitive(Float.NaN), new JsonPrimitive(Double.NaN));
   }
 
   @Test
   public void testEqualsIntegerAndBigInteger() {
     JsonPrimitive a = new JsonPrimitive(5L);
-    JsonPrimitive b = new JsonPrimitive(new BigInteger("18446744073709551621")); // 2^64 + 5
-    // Ideally, the following assertion should have failed but the price is too much to pay
-    // assertFalse(a + " equals " + b, a.equals(b));
-    assertTrue(a + " equals " + b, a.equals(b));
+    JsonPrimitive b = new JsonPrimitive(new BigInteger("18446744073709551621"));
+    assertWithMessage("%s not equals %s", a, b).that(a.equals(b)).isFalse();
   }
 
   @Test
   public void testEqualsDoesNotEquateStringAndNonStringTypes() {
-    assertFalse(new JsonPrimitive("true").equals(new JsonPrimitive(true)));
-    assertFalse(new JsonPrimitive("0").equals(new JsonPrimitive(0)));
-    assertFalse(new JsonPrimitive("NaN").equals(new JsonPrimitive(Float.NaN)));
+    assertThat(new JsonPrimitive("true").equals(new JsonPrimitive(true))).isFalse();
+    assertThat(new JsonPrimitive("0").equals(new JsonPrimitive(0))).isFalse();
+    assertThat(new JsonPrimitive("NaN").equals(new JsonPrimitive(Float.NaN))).isFalse();
   }
 
   @Test
   public void testDeepCopy() {
     JsonPrimitive a = new JsonPrimitive("a");
-    assertSame(a, a.deepCopy()); // Primitives are immutable!
+    assertThat(a).isSameInstanceAs(a.deepCopy()); // Primitives are immutable!
+  }
+
+  @Test
+  public void testBigDecimalEquals() {
+    JsonPrimitive small = new JsonPrimitive(1.0);
+    JsonPrimitive large = new JsonPrimitive(2.0);
+    assertThat(small.equals(large)).isFalse();
+
+    BigDecimal doubleMax = BigDecimal.valueOf(Double.MAX_VALUE);
+    JsonPrimitive smallDecimal = new JsonPrimitive(doubleMax.add(new BigDecimal("100.0")));
+    JsonPrimitive largeDecimal = new JsonPrimitive(doubleMax.add(new BigDecimal("200.0")));
+    assertThat(smallDecimal.equals(largeDecimal)).isFalse();
+  }
+
+  @Test
+  public void testBigDecimalEqualsZero() {
+    assertThat(
+            new JsonPrimitive(new BigDecimal("0.0"))
+                .equals(new JsonPrimitive(new BigDecimal("0.00"))))
+        .isTrue();
+
+    assertThat(
+            new JsonPrimitive(new BigDecimal("0.00"))
+                .equals(new JsonPrimitive(Double.valueOf("0.00"))))
+        .isTrue();
+  }
+
+  /**
+   * Verifies that {@link JsonPrimitive#equals(Object)} is <i>transitive</i> for {@link BigDecimal},
+   * as required by the {@link Object#equals(Object)} documentation.
+   */
+  @Test
+  public void testBigDecimalEqualsTransitive() {
+    JsonPrimitive x = new JsonPrimitive(new BigDecimal("0"));
+    JsonPrimitive y = new JsonPrimitive(0.0d);
+    JsonPrimitive z = new JsonPrimitive(new BigDecimal("0.00"));
+
+    assertThat(x.equals(y)).isTrue();
+    assertThat(y.equals(z)).isTrue();
+    // ... implies
+    assertThat(x.equals(z)).isTrue();
+  }
+
+  @Test
+  public void testEqualsDoubleNaNAndBigDecimal() {
+    assertThat(new JsonPrimitive(Double.NaN).equals(new JsonPrimitive(new BigDecimal("1.0"))))
+        .isFalse();
   }
 }

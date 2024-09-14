@@ -16,7 +16,7 @@
 
 package com.google.gson.functional;
 
-import static org.junit.Assert.assertEquals;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
 import com.google.gson.Gson;
@@ -56,7 +56,8 @@ public class JsonParserTest {
     try {
       gson.fromJson("[[]", Object[].class);
       fail();
-    } catch (JsonSyntaxException expected) { }
+    } catch (JsonSyntaxException expected) {
+    }
   }
 
   @Test
@@ -65,8 +66,8 @@ public class JsonParserTest {
     obj.addProperty("stringValue", "foo");
     obj.addProperty("intValue", 11);
     BagOfPrimitives target = gson.fromJson(obj, BagOfPrimitives.class);
-    assertEquals(11, target.intValue);
-    assertEquals("foo", target.stringValue);
+    assertThat(target.intValue).isEqualTo(11);
+    assertThat(target.stringValue).isEqualTo("foo");
   }
 
   @Test
@@ -79,7 +80,8 @@ public class JsonParserTest {
     try {
       gson.fromJson(array, BagOfPrimitives.class);
       fail("BagOfPrimitives is not an array");
-    } catch (JsonParseException expected) { }
+    } catch (JsonParseException expected) {
+    }
   }
 
   @Test
@@ -94,7 +96,8 @@ public class JsonParserTest {
     try {
       gson.fromJson(obj, BagOfPrimitives.class);
       fail("BagOfPrimitives is not an array");
-    } catch (JsonParseException expected) { }
+    } catch (JsonParseException expected) {
+    }
   }
 
   @Test
@@ -112,28 +115,30 @@ public class JsonParserTest {
     try {
       gson.fromJson(obj, Nested.class);
       fail("Nested has field BagOfPrimitives which is not an array");
-    } catch (JsonParseException expected) { }
+    } catch (JsonParseException expected) {
+    }
   }
 
   @Test
   public void testChangingCustomTreeAndDeserializing() {
     StringReader json =
-      new StringReader("{'stringValue':'no message','intValue':10,'longValue':20}");
+        new StringReader("{'stringValue':'no message','intValue':10,'longValue':20}");
     JsonObject obj = (JsonObject) JsonParser.parseReader(json);
     obj.remove("stringValue");
     obj.addProperty("stringValue", "fooBar");
     BagOfPrimitives target = gson.fromJson(obj, BagOfPrimitives.class);
-    assertEquals(10, target.intValue);
-    assertEquals(20, target.longValue);
-    assertEquals("fooBar", target.stringValue);
+    assertThat(target.intValue).isEqualTo(10);
+    assertThat(target.longValue).isEqualTo(20);
+    assertThat(target.stringValue).isEqualTo("fooBar");
   }
 
   @Test
   public void testExtraCommasInArrays() {
-    Type type = new TypeToken<List<String>>() {}.getType();
-    assertEquals(Arrays.asList("a", null, "b", null, null), gson.fromJson("[a,,b,,]", type));
-    assertEquals(Arrays.asList(null, null), gson.fromJson("[,]", type));
-    assertEquals(Arrays.asList("a", null), gson.fromJson("[a,]", type));
+    TypeToken<List<String>> type = new TypeToken<>() {};
+    assertThat(gson.fromJson("[a,,b,,]", type))
+        .isEqualTo(Arrays.asList("a", null, "b", null, null));
+    assertThat(gson.fromJson("[,]", type)).isEqualTo(Arrays.asList(null, null));
+    assertThat(gson.fromJson("[a,]", type)).isEqualTo(Arrays.asList("a", null));
   }
 
   @Test

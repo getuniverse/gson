@@ -16,7 +16,7 @@
 
 package com.google.gson.functional;
 
-import static org.junit.Assert.assertEquals;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
 import com.google.gson.Gson;
@@ -35,35 +35,32 @@ public class MapAsArrayTypeAdapterTest {
   @Test
   public void testSerializeComplexMapWithTypeAdapter() {
     Type type = new TypeToken<Map<Point, String>>() {}.getType();
-    Gson gson = new GsonBuilder()
-        .enableComplexMapKeySerialization()
-        .create();
+    Gson gson = new GsonBuilder().enableComplexMapKeySerialization().create();
 
     Map<Point, String> original = new LinkedHashMap<>();
     original.put(new Point(5, 5), "a");
     original.put(new Point(8, 8), "b");
     String json = gson.toJson(original, type);
-    assertEquals("[[{\"x\":5,\"y\":5},\"a\"],[{\"x\":8,\"y\":8},\"b\"]]", json);
-    assertEquals(original, gson.<Map<Point, String>>fromJson(json, type));
+    assertThat(json).isEqualTo("[[{\"x\":5,\"y\":5},\"a\"],[{\"x\":8,\"y\":8},\"b\"]]");
+    assertThat(gson.<Map<Point, String>>fromJson(json, type)).isEqualTo(original);
 
     // test that registering a type adapter for one map doesn't interfere with others
     Map<String, Boolean> otherMap = new LinkedHashMap<>();
     otherMap.put("t", true);
     otherMap.put("f", false);
-    assertEquals("{\"t\":true,\"f\":false}",
-        gson.toJson(otherMap, Map.class));
-    assertEquals("{\"t\":true,\"f\":false}",
-        gson.toJson(otherMap, new TypeToken<Map<String, Boolean>>() {}.getType()));
-    assertEquals(otherMap, gson.<Object>fromJson("{\"t\":true,\"f\":false}",
-        new TypeToken<Map<String, Boolean>>() {}.getType()));
+    assertThat(gson.toJson(otherMap, Map.class)).isEqualTo("{\"t\":true,\"f\":false}");
+    assertThat(gson.toJson(otherMap, new TypeToken<Map<String, Boolean>>() {}.getType()))
+        .isEqualTo("{\"t\":true,\"f\":false}");
+    assertThat(
+            gson.<Object>fromJson(
+                "{\"t\":true,\"f\":false}", new TypeToken<Map<String, Boolean>>() {}.getType()))
+        .isEqualTo(otherMap);
   }
 
   @Test
   @Ignore
-  public void disabled_testTwoTypesCollapseToOneSerialize() {
-    Gson gson = new GsonBuilder()
-        .enableComplexMapKeySerialization()
-        .create();
+  public void testTwoTypesCollapseToOneSerialize() {
+    Gson gson = new GsonBuilder().enableComplexMapKeySerialization().create();
 
     Map<Number, String> original = new LinkedHashMap<>();
     original.put(1.0D, "a");
@@ -77,9 +74,7 @@ public class MapAsArrayTypeAdapterTest {
 
   @Test
   public void testTwoTypesCollapseToOneDeserialize() {
-    Gson gson = new GsonBuilder()
-        .enableComplexMapKeySerialization()
-        .create();
+    Gson gson = new GsonBuilder().enableComplexMapKeySerialization().create();
 
     String s = "[[\"1.00\",\"a\"],[\"1.0\",\"b\"]]";
     try {
@@ -90,19 +85,20 @@ public class MapAsArrayTypeAdapterTest {
   }
 
   @Test
-  public void testMultipleEnableComplexKeyRegistrationHasNoEffect() throws Exception {
+  public void testMultipleEnableComplexKeyRegistrationHasNoEffect() {
     Type type = new TypeToken<Map<Point, String>>() {}.getType();
-    Gson gson = new GsonBuilder()
-        .enableComplexMapKeySerialization()
-        .enableComplexMapKeySerialization()
-        .create();
+    Gson gson =
+        new GsonBuilder()
+            .enableComplexMapKeySerialization()
+            .enableComplexMapKeySerialization()
+            .create();
 
     Map<Point, String> original = new LinkedHashMap<>();
     original.put(new Point(6, 5), "abc");
     original.put(new Point(1, 8), "def");
     String json = gson.toJson(original, type);
-    assertEquals("[[{\"x\":6,\"y\":5},\"abc\"],[{\"x\":1,\"y\":8},\"def\"]]", json);
-    assertEquals(original, gson.<Map<Point, String>>fromJson(json, type));
+    assertThat(json).isEqualTo("[[{\"x\":6,\"y\":5},\"abc\"],[{\"x\":1,\"y\":8},\"def\"]]");
+    assertThat(gson.<Map<Point, String>>fromJson(json, type)).isEqualTo(original);
   }
 
   @Test
@@ -110,38 +106,46 @@ public class MapAsArrayTypeAdapterTest {
     Gson gson = new GsonBuilder().enableComplexMapKeySerialization().create();
     PointWithProperty<Point> map = new PointWithProperty<>();
     map.map.put(new Point(2, 3), new Point(4, 5));
-    Type type = new TypeToken<PointWithProperty<Point>>(){}.getType();
+    Type type = new TypeToken<PointWithProperty<Point>>() {}.getType();
     String json = gson.toJson(map, type);
-    assertEquals("{\"map\":[[{\"x\":2,\"y\":3},{\"x\":4,\"y\":5}]]}", json);
+    assertThat(json).isEqualTo("{\"map\":[[{\"x\":2,\"y\":3},{\"x\":4,\"y\":5}]]}");
   }
 
   @Test
   public void testMapWithTypeVariableDeserialization() {
     Gson gson = new GsonBuilder().enableComplexMapKeySerialization().create();
     String json = "{map:[[{x:2,y:3},{x:4,y:5}]]}";
-    Type type = new TypeToken<PointWithProperty<Point>>(){}.getType();
+    Type type = new TypeToken<PointWithProperty<Point>>() {}.getType();
     PointWithProperty<Point> map = gson.fromJson(json, type);
     Point key = map.map.keySet().iterator().next();
     Point value = map.map.values().iterator().next();
-    assertEquals(new Point(2, 3), key);
-    assertEquals(new Point(4, 5), value);
+    assertThat(key).isEqualTo(new Point(2, 3));
+    assertThat(value).isEqualTo(new Point(4, 5));
   }
 
   static class Point {
     int x;
     int y;
+
     Point(int x, int y) {
       this.x = x;
       this.y = y;
     }
+
     Point() {}
-    @Override public boolean equals(Object o) {
+
+    @Override
+    public boolean equals(Object o) {
       return o instanceof Point && ((Point) o).x == x && ((Point) o).y == y;
     }
-    @Override public int hashCode() {
+
+    @Override
+    public int hashCode() {
       return x * 37 + y;
     }
-    @Override public String toString() {
+
+    @Override
+    public String toString() {
       return "(" + x + "," + y + ")";
     }
   }

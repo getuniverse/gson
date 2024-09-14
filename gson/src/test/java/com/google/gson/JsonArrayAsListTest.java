@@ -1,11 +1,23 @@
+/*
+ * Copyright (C) 2022 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.google.gson;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertThrows;
 
 import com.google.gson.common.MoreAsserts;
 import java.util.Arrays;
@@ -13,9 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import org.junit.Test;
 
-/**
- * Tests for {@link JsonArray#asList()}.
- */
+/** Tests for {@link JsonArray#asList()}. */
 public class JsonArrayAsListTest {
   @Test
   public void testGet() {
@@ -23,22 +33,13 @@ public class JsonArrayAsListTest {
     a.add(1);
 
     List<JsonElement> list = a.asList();
-    assertEquals(new JsonPrimitive(1), list.get(0));
+    assertThat(list.get(0)).isEqualTo(new JsonPrimitive(1));
 
-    try {
-      list.get(-1);
-      fail();
-    } catch (IndexOutOfBoundsException e) {
-    }
-
-    try {
-      list.get(2);
-      fail();
-    } catch (IndexOutOfBoundsException e) {
-    }
+    assertThrows(IndexOutOfBoundsException.class, () -> list.get(-1));
+    assertThrows(IndexOutOfBoundsException.class, () -> list.get(2));
 
     a.add((JsonElement) null);
-    assertEquals(JsonNull.INSTANCE, list.get(1));
+    assertThat(list.get(1)).isEqualTo(JsonNull.INSTANCE);
   }
 
   @Test
@@ -47,9 +48,9 @@ public class JsonArrayAsListTest {
     a.add(1);
 
     List<JsonElement> list = a.asList();
-    assertEquals(1, list.size());
+    assertThat(list).hasSize(1);
     list.add(new JsonPrimitive(2));
-    assertEquals(2, list.size());
+    assertThat(list).hasSize(2);
   }
 
   @Test
@@ -59,28 +60,15 @@ public class JsonArrayAsListTest {
 
     List<JsonElement> list = a.asList();
     JsonElement old = list.set(0, new JsonPrimitive(2));
-    assertEquals(new JsonPrimitive(1), old);
-    assertEquals(new JsonPrimitive(2), list.get(0));
-    assertEquals(new JsonPrimitive(2), a.get(0));
+    assertThat(old).isEqualTo(new JsonPrimitive(1));
+    assertThat(list.get(0)).isEqualTo(new JsonPrimitive(2));
+    assertThat(a.get(0)).isEqualTo(new JsonPrimitive(2));
 
-    try {
-      list.set(-1, new JsonPrimitive(1));
-      fail();
-    } catch (IndexOutOfBoundsException e) {
-    }
+    assertThrows(IndexOutOfBoundsException.class, () -> list.set(-1, new JsonPrimitive(1)));
+    assertThrows(IndexOutOfBoundsException.class, () -> list.set(2, new JsonPrimitive(1)));
 
-    try {
-      list.set(2, new JsonPrimitive(1));
-      fail();
-    } catch (IndexOutOfBoundsException e) {
-    }
-
-    try {
-      list.set(0, null);
-      fail();
-    } catch (NullPointerException e) {
-      assertEquals("Element must be non-null", e.getMessage());
-    }
+    NullPointerException e = assertThrows(NullPointerException.class, () -> list.set(0, null));
+    assertThat(e).hasMessageThat().isEqualTo("Element must be non-null");
   }
 
   @Test
@@ -91,42 +79,27 @@ public class JsonArrayAsListTest {
     List<JsonElement> list = a.asList();
     list.add(0, new JsonPrimitive(2));
     list.add(1, new JsonPrimitive(3));
-    assertTrue(list.add(new JsonPrimitive(4)));
-    assertTrue(list.add(JsonNull.INSTANCE));
+    assertThat(list.add(new JsonPrimitive(4))).isTrue();
+    assertThat(list.add(JsonNull.INSTANCE)).isTrue();
 
-    List<JsonElement> expectedList = Arrays.<JsonElement>asList(
-        new JsonPrimitive(2),
-        new JsonPrimitive(3),
-        new JsonPrimitive(1),
-        new JsonPrimitive(4),
-        JsonNull.INSTANCE
-    );
-    assertEquals(expectedList, list);
+    List<JsonElement> expectedList =
+        Arrays.<JsonElement>asList(
+            new JsonPrimitive(2),
+            new JsonPrimitive(3),
+            new JsonPrimitive(1),
+            new JsonPrimitive(4),
+            JsonNull.INSTANCE);
+    assertThat(list).isEqualTo(expectedList);
 
-    try {
-      list.set(-1, new JsonPrimitive(1));
-      fail();
-    } catch (IndexOutOfBoundsException e) {
-    }
+    assertThrows(IndexOutOfBoundsException.class, () -> list.set(-1, new JsonPrimitive(1)));
+    assertThrows(
+        IndexOutOfBoundsException.class, () -> list.set(list.size(), new JsonPrimitive(1)));
 
-    try {
-      list.set(list.size(), new JsonPrimitive(1));
-      fail();
-    } catch (IndexOutOfBoundsException e) {
-    }
+    NullPointerException e = assertThrows(NullPointerException.class, () -> list.add(0, null));
+    assertThat(e).hasMessageThat().isEqualTo("Element must be non-null");
 
-    try {
-      list.add(0, null);
-      fail();
-    } catch (NullPointerException e) {
-      assertEquals("Element must be non-null", e.getMessage());
-    }
-    try {
-      list.add(null);
-      fail();
-    } catch (NullPointerException e) {
-      assertEquals("Element must be non-null", e.getMessage());
-    }
+    e = assertThrows(NullPointerException.class, () -> list.add(null));
+    assertThat(e).hasMessageThat().isEqualTo("Element must be non-null");
   }
 
   @Test
@@ -137,25 +110,23 @@ public class JsonArrayAsListTest {
     List<JsonElement> list = a.asList();
     list.addAll(Arrays.asList(new JsonPrimitive(2), new JsonPrimitive(3)));
 
-    List<JsonElement> expectedList = Arrays.<JsonElement>asList(
-        new JsonPrimitive(1),
-        new JsonPrimitive(2),
-        new JsonPrimitive(3)
-    );
-    assertEquals(expectedList, list);
+    List<JsonElement> expectedList =
+        Arrays.<JsonElement>asList(
+            new JsonPrimitive(1), new JsonPrimitive(2), new JsonPrimitive(3));
+    assertThat(list).isEqualTo(expectedList);
+    assertThat(list).isEqualTo(expectedList);
 
-    try {
-      list.addAll(0, Collections.<JsonElement>singletonList(null));
-      fail();
-    } catch (NullPointerException e) {
-      assertEquals("Element must be non-null", e.getMessage());
-    }
-    try {
-      list.addAll(Collections.<JsonElement>singletonList(null));
-      fail();
-    } catch (NullPointerException e) {
-      assertEquals("Element must be non-null", e.getMessage());
-    }
+    NullPointerException e =
+        assertThrows(
+            NullPointerException.class,
+            () -> list.addAll(0, Collections.<JsonElement>singletonList(null)));
+    assertThat(e).hasMessageThat().isEqualTo("Element must be non-null");
+
+    e =
+        assertThrows(
+            NullPointerException.class,
+            () -> list.addAll(Collections.<JsonElement>singletonList(null)));
+    assertThat(e).hasMessageThat().isEqualTo("Element must be non-null");
   }
 
   @Test
@@ -164,15 +135,11 @@ public class JsonArrayAsListTest {
     a.add(1);
 
     List<JsonElement> list = a.asList();
-    assertEquals(new JsonPrimitive(1), list.remove(0));
-    assertEquals(0, list.size());
-    assertEquals(0, a.size());
+    assertThat(list.remove(0)).isEqualTo(new JsonPrimitive(1));
+    assertThat(list).hasSize(0);
+    assertThat(a).hasSize(0);
 
-    try {
-      list.remove(0);
-      fail();
-    } catch (IndexOutOfBoundsException e) {
-    }
+    assertThrows(IndexOutOfBoundsException.class, () -> list.remove(0));
   }
 
   @Test
@@ -181,12 +148,12 @@ public class JsonArrayAsListTest {
     a.add(1);
 
     List<JsonElement> list = a.asList();
-    assertTrue(list.remove(new JsonPrimitive(1)));
-    assertEquals(0, list.size());
-    assertEquals(0, a.size());
+    assertThat(list.remove(new JsonPrimitive(1))).isTrue();
+    assertThat(list).hasSize(0);
+    assertThat(a).hasSize(0);
 
-    assertFalse(list.remove(new JsonPrimitive(1)));
-    assertFalse(list.remove(null));
+    assertThat(list.remove(new JsonPrimitive(1))).isFalse();
+    assertThat(list.remove(null)).isFalse();
   }
 
   @Test
@@ -196,8 +163,8 @@ public class JsonArrayAsListTest {
 
     List<JsonElement> list = a.asList();
     list.clear();
-    assertEquals(0, list.size());
-    assertEquals(0, a.size());
+    assertThat(list).hasSize(0);
+    assertThat(a).hasSize(0);
   }
 
   @Test
@@ -206,13 +173,13 @@ public class JsonArrayAsListTest {
     a.add(1);
 
     List<JsonElement> list = a.asList();
-    assertTrue(list.contains(new JsonPrimitive(1)));
-    assertFalse(list.contains(new JsonPrimitive(2)));
-    assertFalse(list.contains(null));
+    assertThat(list).contains(new JsonPrimitive(1));
+    assertThat(list).doesNotContain(new JsonPrimitive(2));
+    assertThat(list).doesNotContain(null);
 
     @SuppressWarnings({"unlikely-arg-type", "CollectionIncompatibleType"})
     boolean containsInt = list.contains(1); // should only contain JsonPrimitive(1)
-    assertFalse(containsInt);
+    assertThat(containsInt).isFalse();
   }
 
   @Test
@@ -223,17 +190,17 @@ public class JsonArrayAsListTest {
     a.add(1);
 
     List<JsonElement> list = a.asList();
-    assertEquals(0, list.indexOf(new JsonPrimitive(1)));
-    assertEquals(-1, list.indexOf(new JsonPrimitive(2)));
-    assertEquals(-1, list.indexOf(null));
+    assertThat(list.indexOf(new JsonPrimitive(1))).isEqualTo(0);
+    assertThat(list.indexOf(new JsonPrimitive(2))).isEqualTo(-1);
+    assertThat(list.indexOf(null)).isEqualTo(-1);
 
     @SuppressWarnings({"unlikely-arg-type", "CollectionIncompatibleType"})
     int indexOfInt = list.indexOf(1); // should only contain JsonPrimitive(1)
-    assertEquals(-1, indexOfInt);
+    assertThat(indexOfInt).isEqualTo(-1);
 
-    assertEquals(1, list.lastIndexOf(new JsonPrimitive(1)));
-    assertEquals(-1, list.lastIndexOf(new JsonPrimitive(2)));
-    assertEquals(-1, list.lastIndexOf(null));
+    assertThat(list.lastIndexOf(new JsonPrimitive(1))).isEqualTo(1);
+    assertThat(list.lastIndexOf(new JsonPrimitive(2))).isEqualTo(-1);
+    assertThat(list.lastIndexOf(null)).isEqualTo(-1);
   }
 
   @Test
@@ -242,19 +209,19 @@ public class JsonArrayAsListTest {
     a.add(1);
 
     List<JsonElement> list = a.asList();
-    assertArrayEquals(new Object[] {new JsonPrimitive(1)}, list.toArray());
+    assertThat(list.toArray()).isEqualTo(new Object[] {new JsonPrimitive(1)});
 
     JsonElement[] array = list.toArray(new JsonElement[0]);
-    assertArrayEquals(new Object[] {new JsonPrimitive(1)}, array);
+    assertThat(array).isEqualTo(new Object[] {new JsonPrimitive(1)});
 
     array = new JsonElement[1];
-    assertSame(array, list.toArray(array));
-    assertArrayEquals(new Object[] {new JsonPrimitive(1)}, array);
+    assertThat(list.toArray(array)).isEqualTo(array);
+    assertThat(array).isEqualTo(new Object[] {new JsonPrimitive(1)});
 
     array = new JsonElement[] {null, new JsonPrimitive(2)};
-    assertSame(array, list.toArray(array));
+    assertThat(list.toArray(array)).isEqualTo(array);
     // Should have set existing array element to null
-    assertArrayEquals(new Object[] {new JsonPrimitive(1), null}, array);
+    assertThat(array).isEqualTo(new Object[] {new JsonPrimitive(1), null});
   }
 
   @Test
@@ -264,8 +231,8 @@ public class JsonArrayAsListTest {
 
     List<JsonElement> list = a.asList();
     MoreAsserts.assertEqualsAndHashCode(list, Collections.singletonList(new JsonPrimitive(1)));
-    assertFalse(list.equals(Collections.emptyList()));
-    assertFalse(list.equals(Collections.singletonList(new JsonPrimitive(2))));
+    assertThat(list.equals(Collections.emptyList())).isFalse();
+    assertThat(list.equals(Collections.singletonList(new JsonPrimitive(2)))).isFalse();
   }
 
   /** Verify that {@code JsonArray} updates are visible to view and vice versa */
@@ -275,11 +242,11 @@ public class JsonArrayAsListTest {
     List<JsonElement> list = a.asList();
 
     a.add(1);
-    assertEquals(1, list.size());
-    assertEquals(new JsonPrimitive(1), list.get(0));
+    assertThat(list).hasSize(1);
+    assertThat(list.get(0)).isEqualTo(new JsonPrimitive(1));
 
     list.add(new JsonPrimitive(2));
-    assertEquals(2, a.size());
-    assertEquals(new JsonPrimitive(2), a.get(1));
+    assertThat(a).hasSize(2);
+    assertThat(a.get(1)).isEqualTo(new JsonPrimitive(2));
   }
 }

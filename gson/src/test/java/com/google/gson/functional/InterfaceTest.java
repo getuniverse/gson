@@ -16,7 +16,7 @@
 
 package com.google.gson.functional;
 
-import static org.junit.Assert.assertEquals;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.google.gson.Gson;
 import org.junit.Before;
@@ -41,24 +41,24 @@ public class InterfaceTest {
   }
 
   @Test
-  public void testSerializingObjectImplementingInterface() throws Exception {
-    assertEquals(OBJ_JSON, gson.toJson(obj));
+  public void testSerializingObjectImplementingInterface() {
+    assertThat(gson.toJson(obj)).isEqualTo(OBJ_JSON);
   }
-  
+
   @Test
-  public void testSerializingInterfaceObjectField() throws Exception {
+  public void testSerializingInterfaceObjectField() {
     TestObjectWrapper objWrapper = new TestObjectWrapper(obj);
-    assertEquals("{\"obj\":" + OBJ_JSON + "}", gson.toJson(objWrapper));
+    assertThat(gson.toJson(objWrapper)).isEqualTo("{\"obj\":" + OBJ_JSON + "}");
   }
 
   private static interface TestObjectInterface {
     // Holder
   }
-  
+
   private static class TestObject implements TestObjectInterface {
     @SuppressWarnings("unused")
     private String someStringValue;
-    
+
     private TestObject(String value) {
       this.someStringValue = value;
     }
@@ -67,7 +67,7 @@ public class InterfaceTest {
   private static class TestObjectWrapper {
     @SuppressWarnings("unused")
     private TestObjectInterface obj;
-    
+
     private TestObjectWrapper(TestObjectInterface obj) {
       this.obj = obj;
     }
